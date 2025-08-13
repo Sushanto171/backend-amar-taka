@@ -1,6 +1,5 @@
 import cors from "cors";
 import express, { Application, Request, Response } from "express";
-import { envVars } from "./app/config/env.config";
 
 export const app: Application = express();
 
@@ -13,4 +12,3 @@ app.get("/", (req: Request, res: Response) => {
     message: "Hello world",
   });
 });
-
