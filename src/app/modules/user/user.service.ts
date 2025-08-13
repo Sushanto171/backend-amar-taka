@@ -1,0 +1,28 @@
+import { IUser } from "./user.interface";
+import { User } from "./user.model";
+
+const createUser = async (payload: Partial<IUser>) => {
+  const isUserExist = await User.findOne({
+    $or: [{ phone: payload.phone }, { email: payload.email }],
+  });
+
+  if (isUserExist) {
+    throw new Error("User already exist");
+  }
+
+  // step:1 password hash
+
+  // step: 2 create user
+
+  return {};
+};
+
+const getAllUsers = async () => {
+  const users = await User.find();
+  return { users };
+};
+
+export const userService = {
+  createUser,
+  getAllUsers,
+};
