@@ -3,7 +3,7 @@ dotenv.config();
 
 interface IRequiredVars {
   PORT: string;
-  NODE_ENV: string;
+  NODE_ENV: "development" | "production";
   DB_URL: string;
 }
 
@@ -16,7 +16,7 @@ const loadEnvVariables = (): IRequiredVars => {
 
   return {
     PORT: process.env.PORT as string,
-    NODE_ENV: process.env.NODE_ENV as string,
+    NODE_ENV: process.env.NODE_ENV as "development" | "production",
     DB_URL: process.env.DB_URL as string,
   };
 };
