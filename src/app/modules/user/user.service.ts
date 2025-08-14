@@ -1,4 +1,6 @@
+import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
+import { hashPassword } from "../../utils/bcryptjs";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { IUser } from "./user.interface";
 import { User } from "./user.model";
@@ -11,6 +13,10 @@ const createUser = async (payload: Partial<IUser>) => {
   if (isUserExist) {
     throw new AppError(httpsStatusCodes.BAD_REQUEST, "User already exist.");
   }
+  payload.password = hashPassword(
+    payload.password as string,
+    envVars.BCRYPT_SALT_ROUND
+  );
 
   // step: 2 create user
   const user = await User.create(payload);
