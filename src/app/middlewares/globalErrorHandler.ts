@@ -14,7 +14,7 @@ export const globalErrorHandler = (
     // eslint-disable-next-line no-console
     console.log(error);
   }
-  let status = 5000;
+  let status = 500;
   const message = error.message || "Something went wrong!";
 
   if (error instanceof AppError) {
