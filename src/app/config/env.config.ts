@@ -5,12 +5,47 @@ interface IRequiredVars {
   PORT: string;
   NODE_ENV: "development" | "production";
   DB_URL: string;
-  BCRYPT_SALT_ROUND: string;
+  BCRYPT_SALT_ROUND: number;
+
+  ADMIN: {
+    ADMIN_PHONE: string;
+    ADMIN_PASSWORD: string;
+    ADMIN_NAME: string;
+    ADMIN_INITIAL_SYSTEM_FUND: number;
+  };
+
+  USER: {
+    USER_WELCOME_BONUS: number;
+    USER_DAILY_CASHOUT_LIMIT: number;
+    USER_MONTHLY_CASHOUT_LIMIT: number;
+  };
+
+  AGENT: {
+    AGENT_INITIAL_BALANCE: number;
+    AGENT_DAILY_CASHOUT_LIMIT: number;
+    AGENT_MONTHLY_CASHOUT_LIMIT: number;
+  };
 }
 
+const requiredVars = [
+  "PORT",
+  "NODE_ENV",
+  "DB_URL",
+  "BCRYPT_SALT_ROUND",
+  "ADMIN_PHONE",
+  "ADMIN_PASSWORD",
+  "ADMIN_NAME",
+  "ADMIN_INITIAL_SYSTEM_FUND",
+  "USER_WELCOME_BONUS",
+  "USER_DAILY_CASHOUT_LIMIT",
+  "USER_MONTHLY_CASHOUT_LIMIT",
+  "AGENT_INITIAL_BALANCE",
+  "AGENT_DAILY_CASHOUT_LIMIT",
+  "AGENT_MONTHLY_CASHOUT_LIMIT",
+];
+
 const loadEnvVariables = (): IRequiredVars => {
-  const envVariables = ["PORT", "NODE_ENV", "DB_URL", "BCRYPT_SALT_ROUND"];
-  envVariables.forEach((variable) => {
+  requiredVars.forEach((variable) => {
     if (!process.env[variable])
       throw new Error(`Missing env variable: ${variable}`);
   });
@@ -19,7 +54,30 @@ const loadEnvVariables = (): IRequiredVars => {
     PORT: process.env.PORT as string,
     NODE_ENV: process.env.NODE_ENV as "development" | "production",
     DB_URL: process.env.DB_URL as string,
-    BCRYPT_SALT_ROUND: process.env.BCRYPT_SALT_ROUND as string,
+    BCRYPT_SALT_ROUND: Number(process.env.BCRYPT_SALT_ROUND),
+
+    ADMIN: {
+      ADMIN_PHONE: process.env.ADMIN_PHONE as string,
+      ADMIN_PASSWORD: process.env.ADMIN_PASSWORD as string,
+      ADMIN_NAME: process.env.ADMIN_NAME as string,
+      ADMIN_INITIAL_SYSTEM_FUND: Number(process.env.ADMIN_INITIAL_SYSTEM_FUND),
+    },
+
+    USER: {
+      USER_WELCOME_BONUS: Number(process.env.USER_WELCOME_BONUS),
+      USER_DAILY_CASHOUT_LIMIT: Number(process.env.USER_DAILY_CASHOUT_LIMIT),
+      USER_MONTHLY_CASHOUT_LIMIT: Number(
+        process.env.USER_MONTHLY_CASHOUT_LIMIT
+      ),
+    },
+
+    AGENT: {
+      AGENT_INITIAL_BALANCE: Number(process.env.AGENT_INITIAL_BALANCE),
+      AGENT_DAILY_CASHOUT_LIMIT: Number(process.env.AGENT_DAILY_CASHOUT_LIMIT),
+      AGENT_MONTHLY_CASHOUT_LIMIT: Number(
+        process.env.AGENT_MONTHLY_CASHOUT_LIMIT
+      ),
+    },
   };
 };
 

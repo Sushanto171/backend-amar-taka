@@ -5,9 +5,9 @@ const userSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, min: 1 },
     phone: { type: String, unique: true, required: true, min: 11, max: 14 },
-    password: { type: String, required: true },
+    password: { type: String, required: true, select: false },
     picture: { type: String },
-    email: { type: String, unique: true },
+    email: { type: String },
     wallet: { type: Schema.ObjectId, ref: "Wallet" },
     agentId: { type: Schema.ObjectId, ref: "Agent" },
     role: {

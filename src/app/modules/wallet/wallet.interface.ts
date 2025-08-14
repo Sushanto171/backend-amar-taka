@@ -1,4 +1,4 @@
-import { Document, Types } from "mongoose";
+import { Types } from "mongoose";
 
 export enum ICurrency {
   BDT = "BDT",
@@ -15,13 +15,13 @@ export interface ILimit {
   monthly: number;
 }
 
-export interface IWallet extends Document {
+export interface IWallet {
   user: Types.ObjectId;
   balance: number;
-  currency: ICurrency;
+  currency?: ICurrency;
   type: IWalletType;
-  isBlock: boolean;
-  metadata: unknown;
+  isBlock?: boolean;
+  metadata?: unknown;
   limit: ILimit;
   revenue?: number; //only for agent/admin
 }

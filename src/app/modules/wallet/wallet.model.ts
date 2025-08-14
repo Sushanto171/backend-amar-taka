@@ -1,9 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { model, Schema } from "mongoose";
-import { AppError } from "../../errorHelpers/AppError";
-import { httpsStatusCodes } from "../../utils/https-status-codes";
-import { IRole } from "../user/user.interface";
-import { User } from "../user/user.model";
 import { ICurrency, ILimit, IWallet, IWalletType } from "./wallet.interface";
 
 const limitSchema = new Schema<ILimit>(
@@ -43,31 +38,31 @@ const walletSchema = new Schema<IWallet>(
 );
 
 // Pre-validate hook to require revenue for agents/admins
-walletSchema.pre("validate", async function (next) {
-  try {
-    const wallet = this as IWallet;
-    const user = await User.findById(wallet.user).lean();
-    if (!user) {
-      return next(
-        new AppError(httpsStatusCodes.NOT_FOUND, "User does not exit.")
-      );
-    }
-    if (
-      (user.role === IRole.AGENT || user.role === IRole.ADMIN) &&
-      !wallet.revenue
-    ) {
-      return next(
-        new AppError(
-          httpsStatusCodes.BAD_REQUEST,
-          "Revenue is required for agents/admins"
-        )
-      );
-    }
-    next();
-  } catch (error: any) {
-    console.log("Wallet creation error:", error.message);
-    next(error);
-  }
-});
+// walletSchema.pre("validate", async function (next) {
+//   try {
+//     const wallet = this as IWallet;
+//     const user = await User.findById(wallet.user).lean();
+//     if (!user) {
+//       return next(
+//         new AppError(httpsStatusCodes.NOT_FOUND, "User does not exit.")
+//       );
+//     }
+//     if (
+//       (user.role === IRole.AGENT || user.role === IRole.ADMIN) &&
+//       !wallet.revenue
+//     ) {
+//       return next(
+//         new AppError(
+//           httpsStatusCodes.BAD_REQUEST,
+//           "Revenue is required for agents/admins"
+//         )
+//       );
+//     }
+//     next();
+//   } catch (error: any) {
+//     console.log("Wallet creation error:", error.message);
+//     next(error);
+//   }
+// });
 
 export const Wallet = model<IWallet>("Wallet", walletSchema);
