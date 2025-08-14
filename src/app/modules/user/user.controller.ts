@@ -3,6 +3,7 @@ import { catchAsync } from "../../utils/catchAsync";
 import { userService } from "./user.service";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
+  console.log(req.body);
   const user = await userService.createUser(req.body);
   res.json(user);
 });
