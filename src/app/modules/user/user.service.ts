@@ -1,3 +1,5 @@
+import { AppError } from "../../errorHelpers/AppError";
+import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { IUser } from "./user.interface";
 import { User } from "./user.model";
 
@@ -7,14 +9,15 @@ const createUser = async (payload: Partial<IUser>) => {
   });
 
   if (isUserExist) {
-    throw new Error("User already exist");
+    throw new AppError(httpsStatusCodes.BAD_REQUEST, "User already exist.");
   }
 
   // step:1 password hash
 
   // step: 2 create user
+  const user = await User.create(payload);
 
-  return {};
+  return { user };
 };
 
 const getAllUsers = async () => {
