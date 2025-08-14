@@ -1,16 +1,27 @@
 import { Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
+import { httpsStatusCodes } from "../../utils/https-status-codes";
+import { sendResponse } from "../../utils/sendResponse";
 import { userService } from "./user.service";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
-  console.log(req.body);
   const user = await userService.createUser(req.body);
-  res.json(user);
+  sendResponse(res, {
+    statusCode: httpsStatusCodes.CREATED,
+    success: true,
+    message: "User registered successfully!",
+    data: user,
+  });
 });
 
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   const users = await userService.getAllUsers();
-  res.json(users);
+  sendResponse(res, {
+    statusCode: httpsStatusCodes.CREATED,
+    success: true,
+    message: "User retrieved successfully!",
+    data: users,
+  });
 });
 
 export const userController = {
