@@ -9,8 +9,8 @@ export const setAuthCookie = (res: Response, token: IAuthCookie) => {
   if (token.accessToken) {
     res.cookie("accessToken", token.accessToken, {
       httpOnly: true,
-      secure: envVars.NODE_ENV === "production",
-      sameSite: envVars.NODE_ENV === "production" ? "none" : "lax",
+      // secure: envVars.NODE_ENV === "production",
+      // sameSite: envVars.NODE_ENV === "production" ? "none" : "lax",
     });
   }
   if (token.refreshToken) {
