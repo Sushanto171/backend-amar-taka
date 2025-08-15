@@ -11,8 +11,8 @@ import { User } from "./user.model";
 const createUser = async (payload: Partial<IUser>) => {
   const session = await startSession();
   session.startTransaction();
-  const isUserExist = await User.findOne({ phone: payload.phone });
 
+  const isUserExist = await User.findOne({ phone: payload.phone });
   if (isUserExist) {
     throw new AppError(httpsStatusCodes.BAD_REQUEST, "User already exist.");
   }
@@ -25,9 +25,9 @@ const createUser = async (payload: Partial<IUser>) => {
 
   // step: 2 create user
   const result = await User.create([payload], { session });
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password, ...user } = result[0].toObject();
+
   // 3. create wallet for this user
   const walletPayload: IWallet = {
     balance: envVars.USER.USER_WELCOME_BONUS,
@@ -52,7 +52,36 @@ const getAllUsers = async () => {
   return { users };
 };
 
+const getSingleUser = async (userId: string) => {
+  const user = await User.findById(userId).select("-password");
+  if (!user) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not exist.");
+  }
+  return user;
+};
+
+const getMe = async () => {
+  return {};
+};
+
+const updateUser = async (userId: string, payload: Partial<IUser>) => {
+  const isUserExist = await User.findById(userId).select("-password");
+  if (!isUserExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not exist.");
+  }
+
+  const user = await User.findByIdAndUpdate(userId, payload, {
+    runValidators: true,
+    new: true,
+  });
+
+  return user;
+};
+
 export const userService = {
   createUser,
   getAllUsers,
+  getSingleUser,
+  getMe,
+  updateUser,
 };

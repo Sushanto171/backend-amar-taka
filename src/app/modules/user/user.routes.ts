@@ -12,4 +12,10 @@ router.post(
 );
 router.get("/", userController.getAllUsers);
 
+router.get("/me", userController.getMe);
+
+router.get("/:userId", userController.getSingleUser); // admin route
+
+router.patch("/:userId", userController.updateUser);
+
 export const UserRoutes = router;
