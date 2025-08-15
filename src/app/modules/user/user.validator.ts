@@ -64,3 +64,47 @@ export const CreateUserZodSchema = z.object({
     )
     .optional(),
 });
+
+export const updateUserZodSchema = z.object({
+
+  name: z
+    .string({
+      error: "Invalid name format",
+    })
+    .min(1, { message: "Name cannot be empty" }).optional(),
+
+  phone: z
+    .string({
+      error: "Phone number is required",
+    })
+    .regex(bdPhoneRegex, { message: "Invalid Bangladesh phone number format" }).optional(),
+
+  email: z.string().email({ message: "Invalid email format" }).optional(),
+
+  picture: z.string().url({ message: "Invalid picture URL" }).optional(),
+
+  wallet: objectIdSchema.optional(),
+
+  agentId: objectIdSchema.optional(),
+
+  isVerified: z.boolean().optional(),
+
+  isDeleted: z.boolean().optional(),
+
+  isSuspended: z.boolean().optional(),
+
+  role: z.enum(IRole).optional(),
+
+  failedLoginAttempts: z
+    .number()
+    .min(0, { message: "failedLoginAttempts cannot be negative" })
+    .optional(),
+
+  lockUntil: z
+    .preprocess(
+      (arg) =>
+        typeof arg === "string" || arg instanceof Date ? new Date(arg) : arg,
+      z.date()
+    )
+    .optional(),
+});
