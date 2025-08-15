@@ -9,7 +9,7 @@ export enum IRole {
 export interface IUser {
   name: string;
   phone: string;
-  password: string;
+  password: number;
   email?: string;
   picture?: string;
   wallet: Types.ObjectId;
