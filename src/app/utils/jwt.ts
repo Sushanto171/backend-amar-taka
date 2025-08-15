@@ -31,3 +31,8 @@ export const createUserTokens = (user: IUser) => {
   );
   return { accessToken, refreshToken };
 };
+
+export const verifyToken = (token: string, secret: string) => {
+  const verify = jwt.verify(token, secret);
+  return verify;
+};
