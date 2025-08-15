@@ -5,7 +5,7 @@ const userSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, min: 1 },
     phone: { type: String, unique: true, required: true, min: 11, max: 14 },
-    password: { type: Number, required: true, select: false, min: 6, max: 6 },
+    password: { type: String, required: true, select: false, min: 6, max: 6 },
     picture: { type: String },
     email: { type: String },
     wallet: { type: Schema.ObjectId, ref: "Wallet" },

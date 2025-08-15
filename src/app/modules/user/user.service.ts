@@ -16,7 +16,6 @@ const createUser = async (payload: Partial<IUser>) => {
   if (isUserExist) {
     throw new AppError(httpsStatusCodes.BAD_REQUEST, "User already exist.");
   }
-
   // 1. hash password
   payload.password = hashPassword(
     payload.password as string,
@@ -40,9 +39,9 @@ const createUser = async (payload: Partial<IUser>) => {
   };
 
   const wallet = await Wallet.create([walletPayload], { session });
-
-  session.commitTransaction();
-  session.endSession();
+  
+  await session.commitTransaction();
+  await session.endSession();
 
   return { user, wallet: wallet[0] };
 };
