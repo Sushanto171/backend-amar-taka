@@ -12,7 +12,7 @@ export const globalErrorHandler = (
 ) => {
   if (envVars.NODE_ENV === "development") {
     // eslint-disable-next-line no-console
-    console.log(error);
+    console.log("GlobalErrorHandler:", error);
   }
   let status = 500;
   const message = error.message || "Something went wrong!";

@@ -7,9 +7,10 @@ export enum IRole {
 }
 
 export interface IUser {
+  _id?: Types.ObjectId;
   name: string;
   phone: string;
-  password: number;
+  password: string;
   email?: string;
   picture?: string;
   wallet: Types.ObjectId;
