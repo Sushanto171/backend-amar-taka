@@ -29,10 +29,11 @@ export const CreateUserZodSchema = z.object({
     .regex(bdPhoneRegex, { message: "Invalid Bangladesh phone number format" }),
 
   password: z
-    .string({
+    .number({
       error: "Password is required",
     })
-    .min(6, { message: "Password must be at least 6 characters long" }),
+    .min(6, { message: "Password must be six digit." })
+    .max(6, { message: "Password must be six digit." }),
 
   // Optional fields
   email: z.string().email({ message: "Invalid email format" }).optional(),
