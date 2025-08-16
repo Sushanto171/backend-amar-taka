@@ -1,3 +1,4 @@
+import { JwtPayload } from "jsonwebtoken";
 import mongoose, { startSession, Types } from "mongoose";
 import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
@@ -68,10 +69,10 @@ const verifyAgent = async (
   const session = await startSession();
   session.startTransaction();
   const isRegistrationExist = await Agent.findById(agentId);
+
   if (!isRegistrationExist) {
     throw new AppError(httpsStatusCodes.NOT_FOUND, "Agent does not found");
   }
- 
   if (payload.kycStatus === IKYCStatus.VERIFIED) {
     await Agent.findByIdAndUpdate(
       agentId,
@@ -125,11 +126,29 @@ const verifyAgent = async (
 
   await session.commitTransaction();
   await session.endSession();
-  return {};
+  return;
 };
 
-const updateAgent = async () => {
-  return {};
+const updateAgent = async (
+  user: JwtPayload,
+  agentId: string,
+  payload: Partial<IAgent>
+) => {
+  const isExistAgent = await Agent.findById(agentId);
+  if (!isExistAgent) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "Agent does not found");
+  }
+  if (user.role !== IRole.ADMIN && payload.status) {
+    throw new AppError(
+      httpsStatusCodes.FORBIDDEN,
+      "Your are not permitted this action"
+    );
+  }
+  const agent = await Agent.findByIdAndUpdate(agentId, payload, {
+    runValidators: true,
+    new: true,
+  });
+  return agent;
 };
 
 const allAgents = async () => {

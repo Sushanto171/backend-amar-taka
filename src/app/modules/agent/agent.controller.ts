@@ -27,9 +27,9 @@ const getSingleAgent = catchAsync(async (req, res) => {
 });
 
 const verifyAgent = catchAsync(async (req, res) => {
-  const agentId = req.params.agentId
+  const agentId = req.params.agentId;
 
-  const agent = await agentService.verifyAgent(agentId, req.body)
+  const agent = await agentService.verifyAgent(agentId, req.body);
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
@@ -39,11 +39,18 @@ const verifyAgent = catchAsync(async (req, res) => {
 });
 
 const updateAgent = catchAsync(async (req, res) => {
+  const decoded = req.user;
+  const agentId = req.params.agentId;
+  const updatedInfo = await agentService.updateAgent(
+    decoded,
+    agentId,
+    req.body
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
     message: "Agent info updated successfully",
-    data: null,
+    data: updatedInfo,
   });
 });
 

@@ -3,7 +3,11 @@ import { checkAuth } from "../../middlewares/checkAuth";
 import { validateRequest } from "../../middlewares/validateZodSchema";
 import { IRole } from "../user/user.interface";
 import { agentController } from "./agent.controller";
-import { agentCoreZodSchema } from "./agent.validatior";
+import {
+  agentCoreZodSchema,
+  agentStatusZodSchema,
+  agentUpdateZodSchema,
+} from "./agent.validatior";
 
 const router = Router();
 
@@ -24,7 +28,16 @@ router.get(
 
 router.patch(
   "/verify-status/:agentId",
+  validateRequest(agentStatusZodSchema),
   checkAuth([IRole.ADMIN]),
   agentController.verifyAgent
 );
+
+router.patch(
+  "/:agentId",
+  validateRequest(agentUpdateZodSchema),
+  checkAuth([IRole.ADMIN, IRole.AGENT]),
+  agentController.updateAgent
+);
+
 export const AgentRoutes = router;

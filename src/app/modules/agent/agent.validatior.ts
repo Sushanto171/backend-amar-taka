@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { IAgentStatus, IKYCStatus } from "./agent.interface";
 
 export const nidPhotoTypeSchema = z
   .object({
@@ -39,4 +40,22 @@ export const agentCoreZodSchema = z.object({
         .min(1, "service area cannot be empty")
     )
     .min(1, "at least one service area is required"),
+});
+
+export const agentUpdateZodSchema = z.object({
+  nidPhotoUrl: nidPhotoTypeSchema.optional(),
+  status: z.enum(Object.values(IAgentStatus)).optional(),
+  serviceAreas: z
+    .array(
+      z
+        .string({ error: "service area is required" })
+        .trim()
+        .min(1, "service area cannot be empty")
+    )
+    .min(1, "at least one service area is required")
+    .optional(),
+});
+
+export const agentStatusZodSchema = z.object({
+  kycStatus: z.enum(Object.values(IKYCStatus)),
 });
