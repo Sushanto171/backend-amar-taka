@@ -19,6 +19,12 @@ const login = async (payload: Pick<IUser, "password" | "phone">) => {
   if (!matchedPassword) {
     throw new AppError(httpsStatusCodes.BAD_REQUEST, "Invalid password");
   }
+  if (isUserExist.isSuspended || isUserExist.isDeleted) {
+    throw new AppError(
+      httpsStatusCodes.FORBIDDEN,
+      "Access denied. Please contact support."
+    );
+  }
   const userToken = createUserTokens(isUserExist);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password, ...user } = isUserExist.toObject();

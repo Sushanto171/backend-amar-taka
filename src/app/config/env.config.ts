@@ -5,11 +5,12 @@ interface IRequiredVars {
   PORT: string;
   NODE_ENV: "development" | "production";
   DB_URL: string;
-  BCRYPT_SALT_ROUND: number;
+  BCRYPT_SALT_ROUND: string;
 
   ADMIN: {
     ADMIN_PHONE: string;
     ADMIN_PASSWORD: string;
+    ADMIN_EMAIL: string;
     ADMIN_NAME: string;
     ADMIN_INITIAL_SYSTEM_FUND: number;
   };
@@ -52,6 +53,7 @@ const requiredVars = [
   "JWT_ACCESS_EXPIRATION",
   "JWT_REFRESH_SECRET",
   "JWT_REFRESH_EXPIRATION",
+  "ADMIN_EMAIL",
 ];
 
 const loadEnvVariables = (): IRequiredVars => {
@@ -64,11 +66,12 @@ const loadEnvVariables = (): IRequiredVars => {
     PORT: process.env.PORT as string,
     NODE_ENV: process.env.NODE_ENV as "development" | "production",
     DB_URL: process.env.DB_URL as string,
-    BCRYPT_SALT_ROUND: Number(process.env.BCRYPT_SALT_ROUND),
+    BCRYPT_SALT_ROUND: process.env.BCRYPT_SALT_ROUND as string,
 
     ADMIN: {
       ADMIN_PHONE: process.env.ADMIN_PHONE as string,
       ADMIN_PASSWORD: process.env.ADMIN_PASSWORD as string,
+      ADMIN_EMAIL: process.env.ADMIN_EMAIL as string,
       ADMIN_NAME: process.env.ADMIN_NAME as string,
       ADMIN_INITIAL_SYSTEM_FUND: Number(process.env.ADMIN_INITIAL_SYSTEM_FUND),
     },

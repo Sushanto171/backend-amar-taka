@@ -41,14 +41,16 @@ export const checkAuth =
         );
       }
 
-      if (
-        isUserExist.failedLoginAttempts >= 3 ||
-        new Date(isUserExist.lockUntil).getTime() > Date.now()
-      ) {
-        throw new AppError(
-          httpsStatusCodes.FORBIDDEN,
-          "Your account has been temporarily locked due to multiple failed login attempts. Please try again later or contact support."
-        );
+      if (isUserExist.failedLoginAttempts && isUserExist.lockUntil) {
+        if (
+          isUserExist.failedLoginAttempts >= 3 ||
+          new Date(isUserExist.lockUntil).getTime() > Date.now()
+        ) {
+          throw new AppError(
+            httpsStatusCodes.FORBIDDEN,
+            "Your account has been temporarily locked due to multiple failed login attempts. Please try again later or contact support."
+          );
+        }
       }
       req.user = {
         userId: isUserExist._id,

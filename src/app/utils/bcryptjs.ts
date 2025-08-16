@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 export const hashPassword = (
   plainPassword: string,
-  saltRound: string | number
+  saltRound: string 
 ) => {
   const hashedPassword = bcrypt.hashSync(plainPassword, Number(saltRound));
   return hashedPassword;
