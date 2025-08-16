@@ -21,9 +21,9 @@ const agentSchema = new Schema<IAgent>(
     agentCode: { type: String, required: true, unique: true },
     licenseNumber: { type: String, required: true, unique: true },
     nidNumber: { type: String, required: true, unique: true },
-    nidPhotoUrl: { type: String },
+    nidPhotoUrl: nidPhotoSchema,
     commissionRate: { type: String },
-    serviceAreas: nidPhotoSchema,
+    serviceAreas: { type: [] },
     kycStatus: {
       type: String,
       enum: Object.values(IKYCStatus),

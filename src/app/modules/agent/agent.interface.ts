@@ -25,9 +25,9 @@ export interface IAgent {
   licenseNumber: string;
   nidNumber: string;
   nidPhotoUrl?: INidPhotoType;
-  commissionRate?: number;
   serviceAreas: string[]; // area names or geo-coordinates
-  kycStatus: IKYCStatus;
-  status: IAgentStatus;
+  commissionRate?: number;
+  kycStatus?: IKYCStatus;
+  status?: IAgentStatus;
   metaData?: Record<string, any>;
 }
