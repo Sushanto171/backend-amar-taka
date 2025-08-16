@@ -47,7 +47,7 @@ export const seedAdmin = async () => {
     const walletPayload: IAdminWallet = {
       user: admin._id,
       balance: envVars.ADMIN.ADMIN_INITIAL_SYSTEM_FUND,
-      type: IWalletType.ADMIN,
+      type: IWalletType.SYSTEM,
       revenue: 0,
     };
     const walletArray = await Wallet.create([walletPayload], { session });
