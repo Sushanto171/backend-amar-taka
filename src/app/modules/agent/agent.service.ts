@@ -1,8 +1,20 @@
-import mongoose, { Types } from "mongoose";
+import { JwtPayload } from "jsonwebtoken";
+import mongoose, { startSession, Types } from "mongoose";
+import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
+import { createTransaction } from "../../utils/createTransaction";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
+import { updateSystemWallet } from "../../utils/updateSystemWallet";
+import {
+  ITransaction,
+  ITransactionStatus,
+  ITransactionType,
+} from "../transaction/transaction.interface";
+import { IRole } from "../user/user.interface";
 import { User } from "../user/user.model";
-import { IAgent } from "./agent.interface";
+import { IWalletType } from "../wallet/wallet.interface";
+import { Wallet } from "../wallet/wallet.model";
+import { IAgent, IKYCStatus } from "./agent.interface";
 import { Agent } from "./agent.model";
 
 const registration = async (
@@ -12,6 +24,8 @@ const registration = async (
     "agentCode" | "licenseNumber" | "nidNumber" | "nidPhotoUrl" | "serviceAreas"
   >
 ) => {
+  const session = await startSession();
+  session.startTransaction();
   const user = await User.findById(userId);
   if (!user) {
     throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found");
@@ -30,25 +44,116 @@ const registration = async (
     wallet: user.wallet as Types.ObjectId,
     ...payload,
   };
-  const agent = await Agent.create(agentPayload);
+  const agentArray = await Agent.create([agentPayload], { session });
+  const agent = agentArray[0].toObject();
+  await User.findByIdAndUpdate(
+    { _id: new mongoose.Types.ObjectId(agent.user) },
+    { agent: agent._id },
+    { session }
+  );
+  await session.commitTransaction();
+  await session.endSession();
   return agent;
 };
 
-const getSingleAgent = async () => {
-  return {};
+const getSingleAgent = async (agentId: string) => {
+  const agentInfo = await Agent.findById(agentId);
+  return agentInfo;
 };
 
 // admin route
-const verifyAgent = async () => {
-  return {};
+const verifyAgent = async (
+  agentId: string,
+  payload: Pick<IAgent, "kycStatus">
+) => {
+  const session = await startSession();
+  session.startTransaction();
+  const isRegistrationExist = await Agent.findById(agentId);
+
+  if (!isRegistrationExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "Agent does not found");
+  }
+  if (payload.kycStatus === IKYCStatus.VERIFIED) {
+    await Agent.findByIdAndUpdate(
+      agentId,
+      { kycStatus: payload.kycStatus },
+      { session }
+    );
+    await User.findByIdAndUpdate(
+      isRegistrationExist.user,
+      { role: IRole.AGENT },
+      { session }
+    );
+    await Wallet.findByIdAndUpdate(
+      isRegistrationExist.wallet,
+      {
+        balance: envVars.AGENT.AGENT_INITIAL_BALANCE,
+        type: IWalletType.AGENT,
+        revenue: 0,
+      },
+      { session }
+    );
+    const system = await updateSystemWallet(
+      envVars.AGENT.AGENT_INITIAL_BALANCE,
+      session
+    );
+    if (!system) {
+      throw new AppError(
+        httpsStatusCodes.NOT_FOUND,
+        "System wallet does not found"
+      );
+    }
+    const transactionPayload: ITransaction = {
+      amount: envVars.AGENT.AGENT_INITIAL_BALANCE, //paisa
+      wallet: system._id,
+      destinationWallet: isRegistrationExist.wallet,
+      fee: 0,
+      status: ITransactionStatus.SUCCESS,
+      type: ITransactionType.CASH_IN,
+      initiateRole: IRole.ADMIN,
+      reference: `new-agent-balance-${Date.now()}`,
+    };
+
+    await createTransaction(transactionPayload, session);
+  }
+  if (payload.kycStatus === IKYCStatus.REJECTED) {
+    await Agent.findByIdAndUpdate(
+      agentId,
+      { kycStatus: IKYCStatus.REJECTED },
+      { session }
+    );
+  }
+
+  await session.commitTransaction();
+  await session.endSession();
+  return;
 };
 
-const updateAgent = async () => {
-  return {};
+const updateAgent = async (
+  user: JwtPayload,
+  agentId: string,
+  payload: Partial<IAgent>
+) => {
+  const isExistAgent = await Agent.findById(agentId);
+  if (!isExistAgent) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "Agent does not found");
+  }
+  if (user.role !== IRole.ADMIN && payload.status) {
+    throw new AppError(
+      httpsStatusCodes.FORBIDDEN,
+      "Your are not permitted this action"
+    );
+  }
+  const agent = await Agent.findByIdAndUpdate(agentId, payload, {
+    runValidators: true,
+    new: true,
+  });
+  return agent;
 };
 
 const allAgents = async () => {
-  return {};
+  const agents = await Agent.find();
+  return agents;
 };
 
 export const agentService = {

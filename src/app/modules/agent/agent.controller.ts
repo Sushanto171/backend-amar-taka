@@ -16,38 +16,51 @@ const registration = catchAsync(async (req, res) => {
 });
 
 const getSingleAgent = catchAsync(async (req, res) => {
+  const agentId = req.params.agentId;
+  const agentInfo = await agentService.getSingleAgent(agentId);
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
     message: "Agent retrieved successfully",
-    data: null,
+    data: agentInfo,
   });
 });
 
 const verifyAgent = catchAsync(async (req, res) => {
+  const agentId = req.params.agentId;
+
+  const agent = await agentService.verifyAgent(agentId, req.body);
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
     message: "Agent status updated successfully",
-    data: null,
+    data: agent,
   });
 });
 
 const updateAgent = catchAsync(async (req, res) => {
+  const decoded = req.user;
+  const agentId = req.params.agentId;
+  const updatedInfo = await agentService.updateAgent(
+    decoded,
+    agentId,
+    req.body
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
     message: "Agent info updated successfully",
-    data: null,
+    data: updatedInfo,
   });
 });
 
 const allAgents = catchAsync(async (req, res) => {
+  const agents = await agentService.allAgents();
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
-    message: "",
-    data: null,
+    message: "All agents retrieved successfully.",
+    data: agents,
   });
 });
 
