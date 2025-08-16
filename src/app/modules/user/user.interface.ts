@@ -13,12 +13,12 @@ export interface IUser {
   password: string;
   email?: string;
   picture?: string;
-  wallet: Types.ObjectId;
+  wallet?: Types.ObjectId;
   agentId?: Types.ObjectId;
-  isVerified: boolean;
-  isDeleted: boolean;
-  isSuspended: boolean;
+  isVerified?: boolean;
+  isDeleted?: boolean;
+  isSuspended?: boolean;
   role: IRole;
-  failedLoginAttempts: number;
-  lockUntil: Date;
+  failedLoginAttempts?: number;
+  lockUntil?: Date;
 }

@@ -5,7 +5,7 @@ import { hashPassword } from "../../utils/bcryptjs";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { IWallet, IWalletType } from "../wallet/wallet.interface";
 import { Wallet } from "../wallet/wallet.model";
-import { IUser } from "./user.interface";
+import { IRole, IUser } from "./user.interface";
 import { User } from "./user.model";
 
 const createUser = async (payload: Partial<IUser>) => {
@@ -43,6 +43,12 @@ const createUser = async (payload: Partial<IUser>) => {
   await User.findByIdAndUpdate(
     user._id,
     { wallet: wallet[0]._id },
+    { session }
+  );
+  
+  await Wallet.findOneAndUpdate(
+    { type: IRole.ADMIN },
+    { $inc: { balance: -envVars.USER.USER_WELCOME_BONUS } },
     { session }
   );
 

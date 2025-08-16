@@ -8,6 +8,7 @@ export enum ICurrency {
 export enum IWalletType {
   PERSONAL = "PERSONAL",
   AGENT = "AGENT",
+  ADMIN = "ADMIN",
 }
 
 export interface ILimit {
