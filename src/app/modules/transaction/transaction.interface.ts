@@ -25,11 +25,11 @@ export interface ITransaction {
   wallet: Types.ObjectId;
   type: ITransactionType;
   status: ITransactionStatus;
-  destination_wallet: Types.ObjectId;
+  destinationWallet: Types.ObjectId;
   amount: number;
   reference: string;
   fee: number;
-  initiate_role: IRole;
-  bank_account?: string;
-  meta_data?: unknown;
+  initiateRole: IRole;
+  bankAccount?: string;
+  metaData?: unknown;
 }
