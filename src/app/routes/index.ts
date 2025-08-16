@@ -1,7 +1,8 @@
 import { Router } from "express";
+import { AuthRoutes } from "../modules/auth/auth.routes";
+import { TransactionRoutes } from "../modules/transaction/transaction.routes";
 import { UserRoutes } from "../modules/user/user.routes";
 import { WalletRoutes } from "../modules/wallet/wallet.routes";
-import { AuthRoutes } from "../modules/auth/auth.routes";
 
 interface IRoute {
   path: string;
@@ -20,9 +21,13 @@ const moduleRoutes: IRoute[] = [
     router: WalletRoutes,
   },
   {
-    path : "/auth",
-    router: AuthRoutes
-  }
+    path: "/auth",
+    router: AuthRoutes,
+  },
+  {
+    path: "/transaction",
+    router: TransactionRoutes,
+  },
 ];
 
 moduleRoutes.forEach((module) => router.use(module.path, module.router));
