@@ -6,6 +6,17 @@ export interface INidPhotoType {
   backend: string;
 }
 
+export enum IKYCStatus {
+  PENDING = "PENDING",
+  VERIFIED = "VERIFIED",
+  REJECTED = "REJECTED",
+}
+
+export enum IAgentStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+}
+
 export interface IAgent {
   _id?: Types.ObjectId;
   user: Types.ObjectId;
@@ -16,7 +27,7 @@ export interface IAgent {
   nidPhotoUrl?: INidPhotoType;
   commissionRate?: number;
   serviceAreas: string[]; // area names or geo-coordinates
-  kycStatus: "PENDING" | "VERIFIED" | "REJECTED";
-  status: "ACTIVE" | "INACTIVE";
+  kycStatus: IKYCStatus;
+  status: IAgentStatus;
   metaData?: Record<string, any>;
 }
