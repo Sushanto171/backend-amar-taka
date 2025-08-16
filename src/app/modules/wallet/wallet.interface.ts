@@ -8,7 +8,7 @@ export enum ICurrency {
 export enum IWalletType {
   PERSONAL = "PERSONAL",
   AGENT = "AGENT",
-  ADMIN = "ADMIN",
+  SYSTEM = "SYSTEM",
 }
 
 export interface ILimit {
@@ -24,6 +24,6 @@ export interface IWallet {
   type: IWalletType;
   isBlock?: boolean;
   metadata?: unknown;
-  limit: ILimit;
+  limit?: ILimit;
   revenue?: number; //only for agent/admin
 }

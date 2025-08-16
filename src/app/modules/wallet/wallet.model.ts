@@ -3,8 +3,8 @@ import { ICurrency, ILimit, IWallet, IWalletType } from "./wallet.interface";
 
 const limitSchema = new Schema<ILimit>(
   {
-    monthly: { type: Number, required: true, min: 0 },
-    daily: { type: Number, required: true, min: 0 },
+    monthly: { type: Number, default: 0, min: 0 },
+    daily: { type: Number, default: 0, min: 0 },
   },
   {
     versionKey: false,

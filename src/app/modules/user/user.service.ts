@@ -1,4 +1,4 @@
-import { startSession, Types } from "mongoose";
+import { startSession } from "mongoose";
 import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
 import { hashPassword } from "../../utils/bcryptjs";
@@ -29,54 +29,46 @@ const createUser = async (payload: Partial<IUser>) => {
   );
 
   // step: 2 create user
-  const result = await User.create([payload], { session });
+  const userArray = await User.create([payload], { session });
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { password, ...user } = result[0].toObject();
+  const { password, ...user } = userArray[0].toObject();
 
   // 3. create wallet for this user
   const walletPayload: IWallet = {
     balance: envVars.USER.USER_WELCOME_BONUS,
     user: user._id,
     type: IWalletType.PERSONAL,
-    limit: {
-      daily: envVars.USER.USER_DAILY_CASHOUT_LIMIT,
-      monthly: envVars.USER.USER_MONTHLY_CASHOUT_LIMIT,
-    },
   };
 
-  const wallet = await Wallet.create([walletPayload], { session });
+  const walletArray = await Wallet.create([walletPayload], { session });
+  const wallet = walletArray[0].toObject();
 
-  await User.findByIdAndUpdate(
-    user._id,
-    { wallet: wallet[0]._id },
-    { session }
-  );
+  await User.findByIdAndUpdate(user._id, { wallet: wallet._id }, { session });
 
-  await Wallet.findOneAndUpdate(
-    { type: IRole.ADMIN },
+  const system = await Wallet.findOneAndUpdate(
+    { type: IWalletType.SYSTEM },
     { $inc: { balance: -envVars.USER.USER_WELCOME_BONUS } },
-    { session }
+    { session, runValidators: true }
   );
-  const admin = await User.findOne({
-    phone: envVars.ADMIN.ADMIN_PHONE,
-  }).populate("wallet");
 
-  if (!admin || !admin.wallet) {
-    throw new AppError(httpsStatusCodes.NOT_FOUND, "Admin does not found");
+  if (!system) {
+    throw new AppError(
+      httpsStatusCodes.NOT_FOUND,
+      "System wallet does not found"
+    );
   }
 
   const transactionPayload: ITransaction = {
     amount: envVars.USER.USER_WELCOME_BONUS, //paisa
-    wallet: (admin.wallet as unknown as IWallet)._id as Types.ObjectId,
-    destinationWallet: user._id,
+    wallet: system._id,
+    destinationWallet: wallet._id,
     fee: 0,
     status: ITransactionStatus.SUCCESS,
     type: ITransactionType.CASH_IN,
-    initiateRole: admin.role,
-    reference: `welcome-bonus${Date.now()}`,
+    initiateRole: IRole.ADMIN,
+    reference: `welcome-bonus-${Date.now()}`,
   };
 
-  console.log({ transactionPayload });
   await Transaction.create([transactionPayload], { session });
 
   await session.commitTransaction();
