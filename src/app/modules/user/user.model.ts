@@ -9,7 +9,7 @@ const userSchema = new Schema<IUser>(
     picture: { type: String },
     email: { type: String },
     wallet: { type: Schema.ObjectId, ref: "Wallet" },
-    agentId: { type: Schema.ObjectId, ref: "Agent" },
+    agent: { type: Schema.ObjectId, ref: "Agent" },
     role: {
       type: String,
       enum: [...Object.values(IRole)],

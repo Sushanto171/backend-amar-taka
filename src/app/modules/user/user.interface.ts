@@ -14,7 +14,7 @@ export interface IUser {
   email?: string;
   picture?: string;
   wallet?: Types.ObjectId;
-  agentId?: Types.ObjectId;
+  agent?: Types.ObjectId;
   isVerified?: boolean;
   isDeleted?: boolean;
   isSuspended?: boolean;

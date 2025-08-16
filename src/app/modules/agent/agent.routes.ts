@@ -14,4 +14,17 @@ router.post(
   agentController.registration
 );
 
+router.get("/", checkAuth([IRole.ADMIN]), agentController.allAgents);
+
+router.get(
+  "/:agentId",
+  checkAuth([IRole.ADMIN, IRole.AGENT]),
+  agentController.getSingleAgent
+);
+
+router.patch(
+  "/verify-status/:agentId",
+  checkAuth([IRole.ADMIN]),
+  agentController.verifyAgent
+);
 export const AgentRoutes = router;
