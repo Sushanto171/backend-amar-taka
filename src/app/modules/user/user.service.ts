@@ -1,8 +1,14 @@
-import { startSession } from "mongoose";
+import { startSession, Types } from "mongoose";
 import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
 import { hashPassword } from "../../utils/bcryptjs";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
+import {
+  ITransaction,
+  ITransactionStatus,
+  ITransactionType,
+} from "../transaction/transaction.interface";
+import { Transaction } from "../transaction/transaction.model";
 import { IWallet, IWalletType } from "../wallet/wallet.interface";
 import { Wallet } from "../wallet/wallet.model";
 import { IRole, IUser } from "./user.interface";
@@ -45,12 +51,33 @@ const createUser = async (payload: Partial<IUser>) => {
     { wallet: wallet[0]._id },
     { session }
   );
-  
+
   await Wallet.findOneAndUpdate(
     { type: IRole.ADMIN },
     { $inc: { balance: -envVars.USER.USER_WELCOME_BONUS } },
     { session }
   );
+  const admin = await User.findOne({
+    phone: envVars.ADMIN.ADMIN_PHONE,
+  }).populate("wallet");
+
+  if (!admin || !admin.wallet) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "Admin does not found");
+  }
+
+  const transactionPayload: ITransaction = {
+    amount: envVars.USER.USER_WELCOME_BONUS, //paisa
+    wallet: (admin.wallet as unknown as IWallet)._id as Types.ObjectId,
+    destinationWallet: user._id,
+    fee: 0,
+    status: ITransactionStatus.SUCCESS,
+    type: ITransactionType.CASH_IN,
+    initiateRole: admin.role,
+    reference: `welcome-bonus${Date.now()}`,
+  };
+
+  console.log({ transactionPayload });
+  await Transaction.create([transactionPayload], { session });
 
   await session.commitTransaction();
   await session.endSession();
