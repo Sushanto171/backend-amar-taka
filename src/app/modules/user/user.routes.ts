@@ -14,7 +14,7 @@ router.post(
 );
 router.get("/", checkAuth([IRole.ADMIN]), userController.getAllUsers);
 
-router.get("/me", userController.getMe);
+router.get("/me", checkAuth([...Object.values(IRole)]), userController.getMe);
 
 router.get("/:userId", userController.getSingleUser); // admin route
 

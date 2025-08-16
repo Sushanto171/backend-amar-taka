@@ -30,9 +30,32 @@ export const checkAuth =
       if (!authRoles.includes(isUserExist.role)) {
         throw new AppError(
           httpsStatusCodes.UNAUTHORIZED,
-          "unauthorized access"
+          "unAuthorized access!"
         );
       }
+
+      if (isUserExist.isSuspended) {
+        throw new AppError(
+          httpsStatusCodes.FORBIDDEN,
+          "Access denied. Please contact support."
+        );
+      }
+
+      if (
+        isUserExist.failedLoginAttempts >= 3 ||
+        new Date(isUserExist.lockUntil).getTime() > Date.now()
+      ) {
+        throw new AppError(
+          httpsStatusCodes.FORBIDDEN,
+          "Your account has been temporarily locked due to multiple failed login attempts. Please try again later or contact support."
+        );
+      }
+      req.user = {
+        userId: isUserExist._id,
+        role: isUserExist.role,
+        phone: isUserExist.phone,
+        email: isUserExist.email,
+      };
       next();
     } catch (error: any) {
       throw new AppError(httpsStatusCodes.BAD_REQUEST, error.message);

@@ -36,12 +36,13 @@ const getSingleUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getMe = catchAsync(async (req: Request, res: Response) => {
-  const user = await userService.getMe();
+  const userId = req.user.userId;
+  const userInfo = await userService.getMe(userId);
   sendResponse(res, {
     statusCode: httpsStatusCodes.OK,
     success: true,
     message: "Your Profile retrieved successfully!",
-    data: user,
+    data: userInfo,
   });
 });
 

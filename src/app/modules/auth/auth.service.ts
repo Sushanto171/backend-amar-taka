@@ -22,7 +22,15 @@ const login = async (payload: Pick<IUser, "password" | "phone">) => {
   const userToken = createUserTokens(isUserExist);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password, ...user } = isUserExist.toObject();
-  return { user, userToken };
+  return {
+    user: {
+      _id: user._id,
+      role: user.role,
+      name: user.name,
+      phone: user.phone,
+    },
+    userToken,
+  };
 };
 
 export const authService = {

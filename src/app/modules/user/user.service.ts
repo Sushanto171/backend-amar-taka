@@ -39,11 +39,24 @@ const createUser = async (payload: Partial<IUser>) => {
   };
 
   const wallet = await Wallet.create([walletPayload], { session });
-  
+
+  await User.findByIdAndUpdate(
+    user._id,
+    { wallet: wallet[0]._id },
+    { session }
+  );
+
   await session.commitTransaction();
   await session.endSession();
 
-  return { user, wallet: wallet[0] };
+  return {
+    user: {
+      name: user.name,
+      role: user.role,
+      _id: user._id,
+      phone: user.phone,
+    },
+  };
 };
 
 const getAllUsers = async () => {
@@ -59,8 +72,14 @@ const getSingleUser = async (userId: string) => {
   return user;
 };
 
-const getMe = async () => {
-  return {};
+const getMe = async (userId: string) => {
+  const isUserExist = await User.findById(userId).populate("wallet");
+
+  if (!isUserExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found!");
+  }
+
+  return isUserExist;
 };
 
 const updateUser = async (userId: string, payload: Partial<IUser>) => {
