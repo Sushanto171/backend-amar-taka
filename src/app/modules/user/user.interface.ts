@@ -20,5 +20,5 @@ export interface IUser {
   isSuspended?: boolean;
   role: IRole;
   failedLoginAttempts?: number;
-  lockUntil?: Date;
+  lockUntil?: number | null;
 }

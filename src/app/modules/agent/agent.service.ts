@@ -2,7 +2,6 @@ import { JwtPayload } from "jsonwebtoken";
 import mongoose, { startSession, Types } from "mongoose";
 import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
-import { createTransaction } from "../../utils/createTransaction";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
 import {
@@ -10,6 +9,7 @@ import {
   ITransactionStatus,
   ITransactionType,
 } from "../transaction/transaction.interface";
+import { transactionService } from "../transaction/transaction.service";
 import { IRole } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { IWalletType } from "../wallet/wallet.interface";
@@ -114,7 +114,7 @@ const verifyAgent = async (
       reference: `new-agent-balance-${Date.now()}`,
     };
 
-    await createTransaction(transactionPayload, session);
+    await transactionService.createTransaction(transactionPayload, session);
   }
   if (payload.kycStatus === IKYCStatus.REJECTED) {
     await Agent.findByIdAndUpdate(

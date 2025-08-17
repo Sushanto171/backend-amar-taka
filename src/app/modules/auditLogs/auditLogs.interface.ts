@@ -47,5 +47,5 @@ export interface IAuditLogs {
   status: IAuditStatus;
   ipAddress: string;
   device: IDeviceInfo;
-  metadata: IAuditMetadata;
+  metadata?: IAuditMetadata;
 }

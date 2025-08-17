@@ -41,7 +41,7 @@ export const checkAuth =
         );
       }
 
-      if (isUserExist.failedLoginAttempts && isUserExist.lockUntil) {
+      if (isUserExist.failedLoginAttempts  && isUserExist.lockUntil) {
         if (
           isUserExist.failedLoginAttempts >= 3 ||
           new Date(isUserExist.lockUntil).getTime() > Date.now()
