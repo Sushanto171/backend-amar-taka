@@ -20,10 +20,10 @@ const login = async (
   const session = await startSession();
   session.startTransaction();
 
-  const isUserExist = await User.findOne({ phone: payload.phone }).select(
-    "+password"
-  );
-  
+  const isUserExist = await User.findOne({ phone: payload.phone })
+    .select("+password")
+    .session(session);
+
   if (!isUserExist) {
     throw new AppError(httpsStatusCodes.BAD_REQUEST, "User does not exist");
   }
@@ -34,12 +34,14 @@ const login = async (
     isUserExist.lockUntil !== null &&
     isUserExist.lockUntil >= date
   ) {
+    await session.endSession();
     throw new AppError(
       httpsStatusCodes.METHOD_NOT_ALLOWED,
       "Your account has been temporarily locked due to multiple failed login attempts. Please try again later or contact support."
     );
   }
-  const matchedPassword = comparePassword(
+
+  const matchedPassword = await comparePassword(
     isUserExist.password,
     payload.password
   );
@@ -58,6 +60,7 @@ const login = async (
   }
 
   if (isUserExist.isSuspended || isUserExist.isDeleted) {
+    await session.endSession();
     throw new AppError(
       httpsStatusCodes.FORBIDDEN,
       "Access denied. Please contact support."
@@ -66,8 +69,11 @@ const login = async (
 
   isUserExist.failedLoginAttempts = 0;
   isUserExist.lockUntil = null;
+
   await isUserExist.save({ session });
+  
   const userToken = createUserTokens(isUserExist);
+  
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password, ...user } = isUserExist.toObject();
 
@@ -79,7 +85,7 @@ const login = async (
 
   await session.commitTransaction();
   await session.endSession();
-
+  
   return {
     user: {
       _id: user._id,

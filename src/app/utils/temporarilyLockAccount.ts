@@ -24,6 +24,5 @@ export const temporarilyLockAccount = async (
     await updatedUser.save({ session });
   }
   await session.commitTransaction();
-  await session.endSession();
   throw new AppError(httpsStatusCodes.BAD_REQUEST, "Invalid password");
 };

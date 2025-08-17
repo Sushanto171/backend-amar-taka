@@ -24,7 +24,7 @@ const createUser = async (payload: Partial<IUser>) => {
     throw new AppError(httpsStatusCodes.BAD_REQUEST, "User already exist.");
   }
 
-  payload.password = hashPassword(
+  payload.password = await hashPassword(
     payload.password as string,
     envVars.BCRYPT_SALT_ROUND
   );
