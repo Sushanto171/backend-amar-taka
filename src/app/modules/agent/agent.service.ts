@@ -87,7 +87,7 @@ const verifyAgent = async (
     await Wallet.findByIdAndUpdate(
       isRegistrationExist.wallet,
       {
-        balance: envVars.AGENT.AGENT_INITIAL_BALANCE,
+        $inc: { balance: +envVars.AGENT.AGENT_INITIAL_BALANCE },
         type: IWalletType.AGENT,
         revenue: 0,
       },
