@@ -18,15 +18,34 @@ export enum IAuditActionType {
   P2P_TRANSFER = "P2P_TRANSFER",
   MERCHANT_PAYMENT = "MERCHANT_PAYMENT",
   BILL_PAYMENT = "BILL_PAYMENT",
+  PASSWORD_CHANGE = "PASSWORD_CHANGE",
+  LOG_IN = "LOG_IN",
+  LOG_OUT = "LOG_OUT",
 }
 
+export interface IAuditMetadata {
+  amount?: number;
+  transactionId?: string;
+  currency?: string;
+  [key: string]: any;
+}
+
+export interface IDeviceInfo {
+  browser: string;
+  os: string;
+  deviceType: string;
+  brand: string;
+  rawUserAgent: string;
+}
 export interface IAuditLogs {
   _id?: Types.ObjectId;
   actor: Types.ObjectId; //initiate user id
-  target: Types.ObjectId; // destination user id
+  actorWallet?: Types.ObjectId;
+  targetUser?: Types.ObjectId;
+  targetWallet?: Types.ObjectId; // destination user id
   action: IAuditActionType;
   status: IAuditStatus;
   ipAddress: string;
-  device: string;
-  metadata: Record<string, any>;
+  device: IDeviceInfo;
+  metadata?: IAuditMetadata;
 }

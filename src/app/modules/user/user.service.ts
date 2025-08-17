@@ -2,8 +2,7 @@ import { startSession } from "mongoose";
 import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
 import { hashPassword } from "../../utils/bcryptjs";
-import { createTransaction } from "../../utils/createTransaction";
-import { createWallet } from "../../utils/createWallet";
+
 import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
 import {
@@ -11,6 +10,8 @@ import {
   ITransactionStatus,
   ITransactionType,
 } from "../transaction/transaction.interface";
+import { transactionService } from "./../transaction/transaction.service";
+import { walletService } from "./../wallet/wallet.service";
 import { IRole, IUser } from "./user.interface";
 import { User } from "./user.model";
 
@@ -32,7 +33,7 @@ const createUser = async (payload: Partial<IUser>) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password, ...user } = userArray[0].toObject();
 
-  const wallet = await createWallet(user._id, session);
+  const wallet = await walletService.createWallet(user._id, session);
 
   await User.findByIdAndUpdate(user._id, { wallet: wallet._id }, { session });
 
@@ -59,7 +60,7 @@ const createUser = async (payload: Partial<IUser>) => {
     reference: `welcome-bonus-${Date.now()}`,
   };
 
-  await createTransaction(transactionPayload, session);
+  await transactionService.createTransaction(transactionPayload, session);
 
   await session.commitTransaction();
   await session.endSession();

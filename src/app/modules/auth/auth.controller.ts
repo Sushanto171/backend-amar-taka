@@ -5,7 +5,7 @@ import { setAuthCookie } from "../../utils/setToken";
 import { authService } from "./auth.service";
 
 const login = catchAsync(async (req, res) => {
-  const response = await authService.login(req.body);
+  const response = await authService.login(req.body, req);
   setAuthCookie(res, response.userToken);
   sendResponse(res, {
     success: true,

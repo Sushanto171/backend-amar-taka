@@ -13,6 +13,7 @@ interface IRequiredVars {
     ADMIN_EMAIL: string;
     ADMIN_NAME: string;
     ADMIN_INITIAL_SYSTEM_FUND: number;
+    LOCK_LOGIN_UNTIL: number;
   };
 
   USER: {
@@ -54,6 +55,7 @@ const requiredVars = [
   "JWT_REFRESH_SECRET",
   "JWT_REFRESH_EXPIRATION",
   "ADMIN_EMAIL",
+  "LOCK_LOGIN_UNTIL",
 ];
 
 const loadEnvVariables = (): IRequiredVars => {
@@ -74,6 +76,7 @@ const loadEnvVariables = (): IRequiredVars => {
       ADMIN_EMAIL: process.env.ADMIN_EMAIL as string,
       ADMIN_NAME: process.env.ADMIN_NAME as string,
       ADMIN_INITIAL_SYSTEM_FUND: Number(process.env.ADMIN_INITIAL_SYSTEM_FUND),
+      LOCK_LOGIN_UNTIL: Number(process.env.LOCK_LOGIN_UNTIL),
     },
 
     USER: {

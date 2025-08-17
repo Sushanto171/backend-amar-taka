@@ -3,8 +3,8 @@ import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { sendResponse } from "../../utils/sendResponse";
 import { walletService } from "./wallet.service";
 
-const me = catchAsync(async (req, res) => {
-  const wallet = await walletService.me();
+const myWallet = catchAsync(async (req, res) => {
+  const wallet = await walletService.myWallet();
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
@@ -14,5 +14,5 @@ const me = catchAsync(async (req, res) => {
 });
 
 export const walletController = {
-  me,
+  myWallet,
 };

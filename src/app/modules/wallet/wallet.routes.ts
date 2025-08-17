@@ -3,6 +3,6 @@ import { walletController } from "./wallet.controller";
 
 const router = Router();
 
-router.get("/me", walletController.me);
+router.get("/me", walletController.myWallet);
 
 export const WalletRoutes = router;
