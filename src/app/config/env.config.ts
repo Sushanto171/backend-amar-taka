@@ -33,6 +33,21 @@ interface IRequiredVars {
     JWT_REFRESH_SECRET: string;
     JWT_REFRESH_EXPIRATION: string;
   };
+  DEPOSIT: {
+    MINIMUM_DEPOSIT_AMOUNT: number;
+    DEPOSIT_PERCENT_FEE: number;
+    SYSTEM_DEPOSIT_REVENUE_PERCENT: number;
+    AGENT_DEPOSIT_REVENUE_PERCENT: number;
+  };
+  WITHDRAW: {
+    MINIMUM_WITHDRAW_AMOUNT: number;
+    WITHDRAW_PERCENT_FEE: number;
+    SYSTEM_WITHDRAW_REVENUE_PERCENT: number;
+    AGENT_WITHDRAW_REVENUE_PERCENT: number;
+  };
+  P2P: {
+    P2P_PER_THOUSAND_CHARGE: number;
+  };
 }
 
 const requiredVars = [
@@ -56,6 +71,15 @@ const requiredVars = [
   "JWT_REFRESH_EXPIRATION",
   "ADMIN_EMAIL",
   "LOCK_LOGIN_UNTIL",
+  "MINIMUM_DEPOSIT_AMOUNT",
+  "DEPOSIT_PERCENT_FEE",
+  "SYSTEM_DEPOSIT_REVENUE_PERCENT",
+  "AGENT_DEPOSIT_REVENUE_PERCENT",
+  "MINIMUM_WITHDRAW_AMOUNT",
+  "WITHDRAW_PERCENT_FEE",
+  "SYSTEM_WITHDRAW_REVENUE_PERCENT",
+  "AGENT_WITHDRAW_REVENUE_PERCENT",
+  "P2P_PER_THOUSAND_CHARGE",
 ];
 
 const loadEnvVariables = (): IRequiredVars => {
@@ -99,6 +123,29 @@ const loadEnvVariables = (): IRequiredVars => {
       JWT_ACCESS_EXPIRATION: process.env.JWT_ACCESS_EXPIRATION as string,
       JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET as string,
       JWT_REFRESH_EXPIRATION: process.env.JWT_REFRESH_EXPIRATION as string,
+    },
+    DEPOSIT: {
+      MINIMUM_DEPOSIT_AMOUNT: Number(process.env.MINIMUM_DEPOSIT_AMOUNT),
+      DEPOSIT_PERCENT_FEE: Number(process.env.DEPOSIT_PERCENT_FEE),
+      SYSTEM_DEPOSIT_REVENUE_PERCENT: Number(
+        process.env.SYSTEM_DEPOSIT_REVENUE_PERCENT
+      ),
+      AGENT_DEPOSIT_REVENUE_PERCENT: Number(
+        process.env.AGENT_DEPOSIT_REVENUE_PERCENT
+      ),
+    },
+    WITHDRAW: {
+      MINIMUM_WITHDRAW_AMOUNT: Number(process.env.MINIMUM_WITHDRAW_AMOUNT),
+      WITHDRAW_PERCENT_FEE: Number(process.env.WITHDRAW_PERCENT_FEE),
+      SYSTEM_WITHDRAW_REVENUE_PERCENT: Number(
+        process.env.SYSTEM_WITHDRAW_REVENUE_PERCENT
+      ),
+      AGENT_WITHDRAW_REVENUE_PERCENT: Number(
+        process.env.AGENT_WITHDRAW_REVENUE_PERCENT
+      ),
+    },
+    P2P: {
+      P2P_PER_THOUSAND_CHARGE: Number(process.env.P2P_PER_THOUSAND_CHARGE),
     },
   };
 };

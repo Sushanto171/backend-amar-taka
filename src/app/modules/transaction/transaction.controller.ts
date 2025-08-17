@@ -22,6 +22,7 @@ const getTransactionByUserId = catchAsync(async (req, res) => {
     data: transactions,
   });
 });
+
 const getSingleTransaction = catchAsync(async (req, res) => {
   const transId = req.params.transactionId;
   const userId = req.user.userId;
@@ -29,6 +30,7 @@ const getSingleTransaction = catchAsync(async (req, res) => {
     userId,
     transId
   );
+
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
@@ -37,8 +39,27 @@ const getSingleTransaction = catchAsync(async (req, res) => {
   });
 });
 
+const deposit = catchAsync(async (req, res) => {
+  const agentId = req.user.agentId;
+  const walletId = req.user.userId;
+  const transaction = await transactionService.deposit(
+    req,
+    agentId,
+    walletId,
+    req.body
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.CREATED,
+    message: "Deposit Success.",
+    data: transaction,
+  });
+});
+
 export const transactionController = {
   getAllTransactions,
   getTransactionByUserId,
   getSingleTransaction,
+  deposit,
 };

@@ -1,5 +1,4 @@
 import { Types } from "mongoose";
-import { IRole } from "../user/user.interface";
 
 export enum ITransactionType {
   CASH_IN = "CASH_IN",
@@ -22,14 +21,13 @@ export enum ITransactionStatus {
 
 export interface ITransaction {
   _id?: Types.ObjectId;
-  wallet: Types.ObjectId;
+  fromWallet: Types.ObjectId;
+  toWallet: Types.ObjectId;
   type: ITransactionType;
   status: ITransactionStatus;
-  destinationWallet: Types.ObjectId;
   amount: number;
   reference: string;
   fee: number;
-  initiateRole: IRole;
   bankAccount?: string;
   metaData?: unknown;
 }

@@ -93,10 +93,12 @@ const verifyAgent = async (
       },
       { session }
     );
-    const system = await updateSystemWallet(
-      envVars.AGENT.AGENT_INITIAL_BALANCE,
-      session
-    );
+
+    const system = await updateSystemWallet({
+      session,
+      amount: envVars.AGENT.AGENT_INITIAL_BALANCE,
+    });
+
     if (!system) {
       throw new AppError(
         httpsStatusCodes.NOT_FOUND,
@@ -105,12 +107,11 @@ const verifyAgent = async (
     }
     const transactionPayload: ITransaction = {
       amount: envVars.AGENT.AGENT_INITIAL_BALANCE, //paisa
-      wallet: system._id,
-      destinationWallet: isRegistrationExist.wallet,
+      fromWallet: system._id,
+      toWallet: isRegistrationExist.wallet,
       fee: 0,
       status: ITransactionStatus.SUCCESS,
       type: ITransactionType.CASH_IN,
-      initiateRole: IRole.ADMIN,
       reference: `new-agent-balance-${Date.now()}`,
     };
 

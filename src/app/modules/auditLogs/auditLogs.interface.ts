@@ -25,7 +25,7 @@ export enum IAuditActionType {
 
 export interface IAuditMetadata {
   amount?: number;
-  transactionId?: string;
+  transactionId?: Types.ObjectId;
   currency?: string;
   [key: string]: any;
 }

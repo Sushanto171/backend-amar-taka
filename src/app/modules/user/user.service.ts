@@ -12,7 +12,7 @@ import {
 } from "../transaction/transaction.interface";
 import { transactionService } from "./../transaction/transaction.service";
 import { walletService } from "./../wallet/wallet.service";
-import { IRole, IUser } from "./user.interface";
+import { IUser } from "./user.interface";
 import { User } from "./user.model";
 
 const createUser = async (payload: Partial<IUser>) => {
@@ -37,10 +37,10 @@ const createUser = async (payload: Partial<IUser>) => {
 
   await User.findByIdAndUpdate(user._id, { wallet: wallet._id }, { session });
 
-  const system = await updateSystemWallet(
-    envVars.USER.USER_WELCOME_BONUS,
-    session
-  );
+  const system = await updateSystemWallet({
+    amount: envVars.USER.USER_WELCOME_BONUS,
+    session,
+  });
 
   if (!system) {
     throw new AppError(
@@ -51,12 +51,11 @@ const createUser = async (payload: Partial<IUser>) => {
 
   const transactionPayload: ITransaction = {
     amount: envVars.USER.USER_WELCOME_BONUS, //paisa
-    wallet: system._id,
-    destinationWallet: wallet._id,
+    fromWallet: system._id,
+    toWallet: wallet._id,
     fee: 0,
     status: ITransactionStatus.SUCCESS,
     type: ITransactionType.CASH_IN,
-    initiateRole: IRole.ADMIN,
     reference: `welcome-bonus-${Date.now()}`,
   };
 
