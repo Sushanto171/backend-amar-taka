@@ -37,10 +37,11 @@ const createTransaction = async (
     session.startTransaction();
   }
   try {
-    checkSameNumber(req); //verify duplicate 
+    checkSameNumber(req); //verify duplicate
     checkTransactionTypeWithRole(req.user.role, payload); //verify action + transaction type
     let healthResponse;
-    if (!payload.toWallet) { // if is not provide toWallet id. therefore verify is wallet and user wether 
+    if (!payload.toWallet) {
+      // if is not provide toWallet id. therefore verify is wallet and user wether
       healthResponse = await checkAccountAndWalletHealth(payload, session);
     }
 
@@ -362,6 +363,115 @@ const withdraw = async (req: Request) => {
   }
 };
 
+const P2P = async (req: Request) => {
+  const session = await startSession();
+  session.startTransaction();
+  let isExistTransaction;
+  const { transactionId } = req.body;
+  const userWallet = req.user.wallet as IWallet;
+
+  try {
+    isExistTransaction = await Transaction.findById(transactionId).session(
+      session
+    );
+    if (!isExistTransaction) {
+      throw new AppError(
+        httpsStatusCodes.NOT_FOUND,
+        "Transaction does not found."
+      );
+    }
+
+    const calculation = calculatePercent({
+      amount: isExistTransaction.amount,
+      type: "P2P",
+    });
+    const costAmount =
+      isExistTransaction.amount + (calculation.deductFee as number);
+    if (userWallet.balance < costAmount) {
+      throw new AppError(httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
+    }
+
+    const transaction = await Transaction.findByIdAndUpdate(
+      isExistTransaction._id,
+      {
+        status: ITransactionStatus.SUCCESS,
+        fee: calculation.deductFee,
+      },
+      {
+        session,
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    await Wallet.findByIdAndUpdate(
+      isExistTransaction.fromWallet,
+      {
+        $inc: {
+          balance: -(
+            isExistTransaction.amount + (calculation.deductFee as number)
+          ),
+        },
+      },
+      { runValidators: true, session, new: true }
+    );
+
+    await Wallet.findByIdAndUpdate(
+      isExistTransaction.toWallet,
+      {
+        $inc: {
+          balance: +isExistTransaction.amount,
+        },
+      },
+      { session, runValidators: true, new: true }
+    );
+
+    await updateSystemWallet({
+      revenue: calculation.systemRevenue,
+      session,
+    });
+
+    await auditLogsService.createAuditLog({
+      payload: {
+        action: IAuditActionType.P2P_TRANSFER,
+        targetWallet: isExistTransaction.toWallet,
+        actor: userWallet._id as Types.ObjectId,
+        actorWallet: isExistTransaction.fromWallet,
+        status: IAuditStatus.SUCCESS,
+        metadata: {
+          amount: isExistTransaction.amount,
+          transactionId: isExistTransaction._id,
+        },
+      },
+      session,
+      req,
+    });
+    await session.commitTransaction();
+    return transaction;
+  } catch (error) {
+    await auditLogsService.createAuditLog({
+      payload: {
+        action: IAuditActionType.P2P_TRANSFER,
+        targetWallet: isExistTransaction
+          ? (isExistTransaction.toWallet as Types.ObjectId)
+          : undefined,
+        actor: userWallet.user._id,
+        actorWallet: userWallet._id,
+        status: IAuditStatus.FAILED,
+        metadata: {
+          amount: isExistTransaction ? isExistTransaction.amount : undefined,
+        },
+      },
+      session,
+      req,
+    });
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    await session.endSession();
+  }
+};
+
 export const transactionService = {
   createTransaction,
   getAllTransactions,
@@ -369,4 +479,5 @@ export const transactionService = {
   getSingleTransaction,
   deposit,
   withdraw,
+  P2P,
 };

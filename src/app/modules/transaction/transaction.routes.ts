@@ -44,4 +44,11 @@ router.post(
   transactionController.withdraw
 );
 
+router.post(
+  "/send-money",
+  checkAuth([IRole.USER]),
+  checkWallet,
+  transactionController.P2P
+);
+
 export const TransactionRoutes = router;

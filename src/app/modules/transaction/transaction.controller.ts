@@ -81,6 +81,17 @@ const withdraw = catchAsync(async (req, res) => {
   });
 });
 
+const P2P = catchAsync(async (req, res) => {
+  const transaction = await transactionService.P2P(req);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.CREATED,
+    message: "Cash out Success.",
+    data: transaction,
+  });
+});
+
 export const transactionController = {
   createTransaction,
   getAllTransactions,
@@ -88,4 +99,5 @@ export const transactionController = {
   getSingleTransaction,
   deposit,
   withdraw,
+  P2P,
 };

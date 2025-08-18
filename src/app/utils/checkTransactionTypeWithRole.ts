@@ -13,7 +13,8 @@ export const checkTransactionTypeWithRole = (
 ) => {
   if (
     (userRole === IRole.USER && payload.type === ITransactionType.CASH_IN) ||
-    (userRole === IRole.AGENT && payload.type === ITransactionType.CASH_OUT)
+    (userRole === IRole.AGENT && payload.type === ITransactionType.CASH_OUT) ||
+    !(payload.type === ITransactionType.P2P_TRANSFER && userRole === IRole.USER)
   ) {
     throw new AppError(
       httpsStatusCodes.NOT_ACCEPTABLE,
