@@ -10,20 +10,19 @@ import { ClientSession } from "mongoose";
 
 import { calculatePercent } from "../../utils/calculatePercent";
 import { checkAccountAndWalletHealth } from "../../utils/checkAccountAndWalletHealth";
+import {
+  checkSameNumber,
+  checkTransactionTypeWithRole,
+} from "../../utils/checkTransactionTypeWithRole";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
 import {
   IAuditActionType,
   IAuditStatus,
 } from "../auditLogs/auditLogs.interface";
 import { auditLogsService } from "../auditLogs/auditLogs.service";
-import { IRole } from "../user/user.interface";
 import { IWallet } from "../wallet/wallet.interface";
 import { Wallet } from "../wallet/wallet.model";
-import {
-  ITransaction,
-  ITransactionStatus,
-  ITransactionType,
-} from "./transaction.interface";
+import { ITransaction, ITransactionStatus } from "./transaction.interface";
 
 const createTransaction = async (
   req: Request,
@@ -37,36 +36,14 @@ const createTransaction = async (
     session = await startSession();
     session.startTransaction();
   }
-  const userRole = req.user.role as IRole;
-  if (
-    (userRole === IRole.USER && payload.type === ITransactionType.CASH_IN) ||
-    (userRole === IRole.AGENT && payload.type === ITransactionType.CASH_OUT)
-  ) {
-    throw new AppError(
-      httpsStatusCodes.NOT_ACCEPTABLE,
-      "Your are to permitted for this action!"
-    );
-  }
   try {
+    checkSameNumber(req); //verify duplicate 
+    checkTransactionTypeWithRole(req.user.role, payload); //verify action + transaction type
     let healthResponse;
-    if (!payload.toWallet) {
-      healthResponse = await checkAccountAndWalletHealth(
-        payload.phone,
-        session,
-        payload.type === ITransactionType.CASH_IN
-          ? IRole.USER
-          : payload.type === ITransactionType.CASH_OUT
-          ? IRole.AGENT
-          : IRole.USER
-      );
+    if (!payload.toWallet) { // if is not provide toWallet id. therefore verify is wallet and user wether 
+      healthResponse = await checkAccountAndWalletHealth(payload, session);
     }
 
-    if (payload.phone === req.user.phone) {
-      throw new AppError(
-        httpsStatusCodes.NOT_ACCEPTABLE,
-        "Your can't transaction with some number!"
-      );
-    }
     const transPayload: ITransaction = {
       fromWallet: payload.fromWallet,
       phone: payload.phone,
@@ -111,7 +88,6 @@ const createTransaction = async (
     }
     return transaction;
   } catch (error: any) {
-    console.log("Transaction creation error:", error);
     await session.abortTransaction();
     await session.endSession();
     throw new AppError(httpsStatusCodes.INTERNAL_SERVER_ERROR, error.message);

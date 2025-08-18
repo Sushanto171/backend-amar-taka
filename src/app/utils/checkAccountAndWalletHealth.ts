@@ -1,16 +1,26 @@
 import { ClientSession } from "mongoose";
 import { AppError } from "../errorHelpers/AppError";
 import { IAgent, IAgentStatus } from "../modules/agent/agent.interface";
+import {
+  ITransaction,
+  ITransactionType,
+} from "../modules/transaction/transaction.interface";
 import { IRole } from "../modules/user/user.interface";
 import { User } from "../modules/user/user.model";
 import { IWallet } from "../modules/wallet/wallet.interface";
 import { httpsStatusCodes } from "./https-status-codes";
 
 export const checkAccountAndWalletHealth = async (
-  phone: string,
-  session: ClientSession,
-  checkAgent?: IRole
+  payload: ITransaction,
+  session: ClientSession
 ) => {
+  const phone = payload.phone;
+  const checkAgent =
+    payload.type === ITransactionType.CASH_IN
+      ? IRole.USER
+      : payload.type === ITransactionType.CASH_OUT
+      ? IRole.AGENT
+      : IRole.USER;
   const isUserExist = await User.findOne({ phone })
     .populate(["wallet", "agent"])
     .session(session);
@@ -60,5 +70,5 @@ export const checkAccountAndWalletHealth = async (
     wallet: isUserExist.wallet && isUserExist.wallet._id,
     agent: isUserExist.agent && isUserExist.agent._id,
   };
-  return  user ;
+  return user;
 };
