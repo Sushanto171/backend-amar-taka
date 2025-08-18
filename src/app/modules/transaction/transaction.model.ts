@@ -30,7 +30,6 @@ const transactionSchema = new Schema<ITransaction>(
     },
     phone: {
       type: String,
-      unique: true,
       required: true,
       min: 11,
       max: 14,

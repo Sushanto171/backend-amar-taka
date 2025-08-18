@@ -60,14 +60,7 @@ const getSingleTransaction = catchAsync(async (req, res) => {
 });
 
 const deposit = catchAsync(async (req, res) => {
-  const agentId = req.user.agentId;
-  const walletId = req.user.walletId;
-  const transaction = await transactionService.deposit(
-    req,
-    agentId,
-    walletId,
-    req.body
-  );
+  const transaction = await transactionService.deposit(req);
 
   sendResponse(res, {
     success: true,

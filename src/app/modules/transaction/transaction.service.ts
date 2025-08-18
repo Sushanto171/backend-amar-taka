@@ -6,9 +6,17 @@ import { Transaction } from "./transaction.model";
 
 import { Request } from "express";
 import { ClientSession } from "mongoose";
+
+import { calculatePercent } from "../../utils/calculatePercent";
 import { checkAccountAndWalletHealth } from "../../utils/checkAccountAndWalletHealth";
-import { IAuditActionType } from "../auditLogs/auditLogs.interface";
+import { updateSystemWallet } from "../../utils/updateSystemWallet";
+import {
+  IAuditActionType,
+  IAuditStatus,
+} from "../auditLogs/auditLogs.interface";
 import { auditLogsService } from "../auditLogs/auditLogs.service";
+import { IWallet } from "../wallet/wallet.interface";
+import { Wallet } from "../wallet/wallet.model";
 import { ITransaction, ITransactionStatus } from "./transaction.interface";
 
 const createTransaction = async (
@@ -31,7 +39,6 @@ const createTransaction = async (
         session
       );
     }
-    console.log(healthResponse);
     const transPayload: ITransaction = {
       fromWallet: payload.fromWallet,
       phone: payload.phone,
@@ -44,8 +51,6 @@ const createTransaction = async (
       type: payload.type,
       fee: payload.fee || 0,
     };
-
-    console.log(transPayload);
     const transactionArray = await Transaction.create([transPayload], {
       session,
     });
@@ -132,85 +137,111 @@ const getSingleTransaction = async (userId: string, transId: string) => {
   return transaction;
 };
 
-const deposit = async (
-  req: Request,
-  agentId: Types.ObjectId,
-  fromWalletId: Types.ObjectId,
-  payload: ITransaction
-) => {
-  //   const session = await startSession();
-  //   session.startTransaction();
-  //   const calculation = calculateDepositPercent(payload.amount);
-  //   const depositPayload: ITransaction = {
-  //     fromWallet: fromWalletId,
-  //     toWallet: toWallet._id,
-  //     amount: payload.amount,
-  //     reference: payload.reference,
-  //     status: ITransactionStatus.SUCCESS,
-  //     type: ITransactionType.CASH_IN,
-  //     fee: calculation.deductFee,
-  //   };
-  //   try {
-  //     const transactionArray = await Transaction.create([depositPayload], {
-  //       session,
-  //     });
-  //     const transaction = transactionArray[0].toObject();
-  //     await Wallet.findByIdAndUpdate(
-  //       toWallet._id,
-  //       {
-  //         $inc: { balance: payload.amount - calculation.deductFee },
-  //       },
-  //       { runValidators: true, session }
-  //     );
-  //     const fromUpdatedWallet = await Wallet.findByIdAndUpdate(
-  //       fromWalletId,
-  //       {
-  //         $inc: { balance: -payload.amount, revenue: +calculation.agentRevenue },
-  //       },
-  //       { session, runValidators: true, new: true }
-  //     );
-  //     console.log({ fromUpdatedWallet });
-  //     await updateSystemWallet({
-  //       revenue: calculation.systemRevenue,
-  //       session,
-  //     });
-  //     await auditLogsService.createAuditLog({
-  //       payload: {
-  //         action: IAuditActionType.CASH_IN,
-  //         targetWallet: toWallet._id,
-  //         actor: agentId,
-  //         actorWallet: fromWalletId,
-  //         status: IAuditStatus.SUCCESS,
-  //         metadata: {
-  //           amount: depositPayload.amount,
-  //           transactionId: transaction._id,
-  //         },
-  //       },
-  //       session,
-  //       req,
-  //     });
-  //     await session.commitTransaction();
-  //   } catch (error) {
-  //     await auditLogsService.createAuditLog({
-  //       payload: {
-  //         action: IAuditActionType.CASH_IN,
-  //         targetWallet: toWallet._id,
-  //         actor: agentId,
-  //         actorWallet: fromWalletId,
-  //         status: IAuditStatus.FAILED,
-  //         metadata: {
-  //           amount: depositPayload.amount,
-  //         },
-  //       },
-  //       session,
-  //       req,
-  //     });
-  //     await session.abortTransaction();
-  //     throw error;
-  //   } finally {
-  //     await session.endSession();
-  //   }
-  //   return {};
+const deposit = async (req: Request) => {
+  const session = await startSession();
+  session.startTransaction();
+  let isExistTransaction;
+  const { transactionId } = req.body;
+  const agentWallet = req.user.wallet as IWallet;
+  try {
+    isExistTransaction = await Transaction.findById(transactionId).session(
+      session
+    );
+    if (!isExistTransaction) {
+      throw new AppError(
+        httpsStatusCodes.NOT_FOUND,
+        "Transaction does not found."
+      );
+    }
+    if (isExistTransaction.amount > agentWallet.balance) {
+      throw new AppError(httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
+    }
+
+    const calculation = calculatePercent({
+      amount: isExistTransaction.amount,
+      type: "DEPOSIT",
+    });
+
+    const transaction = await Transaction.findByIdAndUpdate(
+      isExistTransaction._id,
+      {
+        status: ITransactionStatus.SUCCESS,
+        fee: calculation.deductFee,
+      },
+      {
+        session,
+        new: true,
+        runValidators: true,
+      }
+    );
+
+   
+   await Wallet.findByIdAndUpdate(
+      isExistTransaction.toWallet,
+      {
+        $inc: {
+          balance:
+            isExistTransaction.amount - (calculation.deductFee as number),
+        },
+      },
+      { runValidators: true, session, new: true }
+    );
+
+    await Wallet.findByIdAndUpdate(
+      isExistTransaction.fromWallet,
+      {
+        $inc: {
+          balance: -isExistTransaction.amount,
+          revenue: +(calculation.agentRevenue as number),
+        },
+      },
+      { session, runValidators: true, new: true }
+    );
+
+    await updateSystemWallet({
+      revenue: calculation.systemRevenue,
+      session,
+    });
+
+    await auditLogsService.createAuditLog({
+      payload: {
+        action: IAuditActionType.CASH_IN,
+        targetWallet: isExistTransaction.toWallet,
+        actor: agentWallet._id as Types.ObjectId,
+        actorWallet: isExistTransaction.fromWallet,
+        status: IAuditStatus.SUCCESS,
+        metadata: {
+          amount: isExistTransaction.amount,
+          transactionId: isExistTransaction._id,
+        },
+      },
+      session,
+      req,
+    });
+    await session.commitTransaction();
+    return transaction;
+  } catch (error) {
+    await auditLogsService.createAuditLog({
+      payload: {
+        action: IAuditActionType.CASH_IN,
+        targetWallet: isExistTransaction
+          ? (isExistTransaction.toWallet as Types.ObjectId)
+          : undefined,
+        actor: agentWallet.user._id,
+        actorWallet: agentWallet._id,
+        status: IAuditStatus.FAILED,
+        metadata: {
+          amount: isExistTransaction ? isExistTransaction.amount : undefined,
+        },
+      },
+      session,
+      req,
+    });
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    await session.endSession();
+  }
 };
 
 export const transactionService = {

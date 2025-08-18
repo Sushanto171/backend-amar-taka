@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { checkAgent } from "../../middlewares/checkAgent";
+import { checkWallet } from "../../middlewares/checkWallet";
 import { checkAuth } from "../../middlewares/checkAuth";
 import { validateRequest } from "../../middlewares/validateZodSchema";
 import { IRole } from "../user/user.interface";
@@ -31,6 +31,6 @@ router.get(
   transactionController.getSingleTransaction
 );
 
-router.post("/deposit", checkAgent, transactionController.deposit);
+router.post("/deposit", checkAuth([IRole.AGENT]), checkWallet, transactionController.deposit);
 
 export const TransactionRoutes = router;

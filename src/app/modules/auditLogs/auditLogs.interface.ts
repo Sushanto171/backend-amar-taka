@@ -40,7 +40,7 @@ export interface IDeviceInfo {
 }
 export interface IAuditLogs {
   _id?: Types.ObjectId;
-  actor: Types.ObjectId; //initiate user id
+  actor: Types.ObjectId | "System"; //initiate user id
   actorWallet?: Types.ObjectId;
   targetUser?: Types.ObjectId;
   targetWallet?: Types.ObjectId; // destination user id

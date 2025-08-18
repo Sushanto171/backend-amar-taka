@@ -1,3 +1,4 @@
+import { Request } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import mongoose, { startSession, Types } from "mongoose";
 import { envVars } from "../../config/env.config";
@@ -10,7 +11,7 @@ import {
   ITransactionType,
 } from "../transaction/transaction.interface";
 import { transactionService } from "../transaction/transaction.service";
-import { IRole } from "../user/user.interface";
+import { IRole, IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { IWalletType } from "../wallet/wallet.interface";
 import { Wallet } from "../wallet/wallet.model";
@@ -62,13 +63,12 @@ const getSingleAgent = async (agentId: string) => {
 };
 
 // admin route
-const verifyAgent = async (
-  agentId: string,
-  payload: Pick<IAgent, "kycStatus">
-) => {
+const verifyAgent = async (req: Request) => {
+  const payload: Pick<IAgent, "kycStatus"> = req.body;
+  const agentId = req.params.agentId;
   const session = await startSession();
   session.startTransaction();
-  const isRegistrationExist = await Agent.findById(agentId);
+  const isRegistrationExist = await Agent.findById(agentId).populate("user");
 
   if (!isRegistrationExist) {
     throw new AppError(httpsStatusCodes.NOT_FOUND, "Agent does not found");
@@ -105,17 +105,23 @@ const verifyAgent = async (
         "System wallet does not found"
       );
     }
+    const user = isRegistrationExist.user as unknown as IUser;
     const transactionPayload: ITransaction = {
       amount: envVars.AGENT.AGENT_INITIAL_BALANCE, //paisa
       fromWallet: system._id,
       toWallet: isRegistrationExist.wallet,
+      phone: user.phone,
       fee: 0,
       status: ITransactionStatus.SUCCESS,
       type: ITransactionType.CASH_IN,
       reference: `new-agent-balance-${Date.now()}`,
     };
 
-    await transactionService.createTransaction(transactionPayload, session);
+    await transactionService.createTransaction(
+      req,
+      transactionPayload,
+      session
+    );
   }
   if (payload.kycStatus === IKYCStatus.REJECTED) {
     await Agent.findByIdAndUpdate(
