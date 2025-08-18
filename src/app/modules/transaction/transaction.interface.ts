@@ -22,7 +22,8 @@ export enum ITransactionStatus {
 export interface ITransaction {
   _id?: Types.ObjectId;
   fromWallet: Types.ObjectId;
-  toWallet: Types.ObjectId;
+  toWallet?: Types.ObjectId;
+  phone: string;
   type: ITransactionType;
   status: ITransactionStatus;
   amount: number;
@@ -30,4 +31,5 @@ export interface ITransaction {
   fee: number;
   bankAccount?: string;
   metaData?: unknown;
+  userId?: Types.ObjectId;
 }

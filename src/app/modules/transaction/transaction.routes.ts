@@ -1,9 +1,19 @@
 import { Router } from "express";
+import { checkAgent } from "../../middlewares/checkAgent";
 import { checkAuth } from "../../middlewares/checkAuth";
+import { validateRequest } from "../../middlewares/validateZodSchema";
 import { IRole } from "../user/user.interface";
 import { transactionController } from "./transaction.controller";
+import { transactionZodSchema } from "./transaction.validator";
 
 const router = Router();
+
+router.post(
+  "/",
+  validateRequest(transactionZodSchema),
+  checkAuth([...Object.values(IRole)]),
+  transactionController.createTransaction
+);
 
 router.get(
   "/",
@@ -20,5 +30,7 @@ router.get(
   checkAuth([...Object.values(IRole)]),
   transactionController.getSingleTransaction
 );
+
+router.post("/deposit", checkAgent, transactionController.deposit);
 
 export const TransactionRoutes = router;

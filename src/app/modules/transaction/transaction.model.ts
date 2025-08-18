@@ -26,8 +26,15 @@ const transactionSchema = new Schema<ITransaction>(
     },
     toWallet: {
       type: Schema.Types.ObjectId,
-      required: true,
       ref: "Wallet",
+    },
+    phone: {
+      type: String,
+      unique: true,
+      required: true,
+      min: 11,
+      max: 14,
+      ref: "User",
     },
     reference: { type: String, sparse: true, unique: true },
     fee: { type: Number, required: true, min: 0 },

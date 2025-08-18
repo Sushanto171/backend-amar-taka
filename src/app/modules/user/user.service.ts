@@ -3,6 +3,7 @@ import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
 import { hashPassword } from "../../utils/bcryptjs";
 
+import { Request } from "express";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
 import {
@@ -15,7 +16,8 @@ import { walletService } from "./../wallet/wallet.service";
 import { IUser } from "./user.interface";
 import { User } from "./user.model";
 
-const createUser = async (payload: Partial<IUser>) => {
+const createUser = async (req: Request) => {
+  const payload = req.body;
   const session = await startSession();
   session.startTransaction();
 
@@ -53,17 +55,17 @@ const createUser = async (payload: Partial<IUser>) => {
     amount: envVars.USER.USER_WELCOME_BONUS, //paisa
     fromWallet: system._id,
     toWallet: wallet._id,
+    phone: user.phone,
     fee: 0,
     status: ITransactionStatus.SUCCESS,
     type: ITransactionType.CASH_IN,
     reference: `welcome-bonus-${Date.now()}`,
   };
 
-  await transactionService.createTransaction(transactionPayload, session);
+  await transactionService.createTransaction(req, transactionPayload);
 
   await session.commitTransaction();
   await session.endSession();
-
   return {
     user: {
       name: user.name,

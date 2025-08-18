@@ -1,43 +1,54 @@
-import { ClientSession, Types } from "mongoose";
+import { ClientSession } from "mongoose";
 import { AppError } from "../errorHelpers/AppError";
-import { IUser } from "../modules/user/user.interface";
-import { Wallet } from "../modules/wallet/wallet.model";
+import { IAgent, IAgentStatus } from "../modules/agent/agent.interface";
+import { User } from "../modules/user/user.model";
+import { IWallet } from "../modules/wallet/wallet.interface";
 import { httpsStatusCodes } from "./https-status-codes";
 
 export const checkAccountAndWalletHealth = async (
-  walletId: Types.ObjectId,
+  phone: string,
   session: ClientSession
 ) => {
-  const isWalletExist = await Wallet.findById(walletId)
-    .populate("user")
+  const isUserExist = await User.findOne({ phone })
+    .populate(["wallet", "agent"])
     .session(session);
-  if (!isWalletExist) {
-    await session.abortTransaction();
-    await session.endSession();
-    throw new AppError(httpsStatusCodes.NOT_FOUND, "Wallet does not found!");
+  if (!isUserExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found!");
+  }
+  if (isUserExist.isDeleted || isUserExist.isSuspended) {
+    throw new AppError(
+      httpsStatusCodes.NOT_ACCEPTABLE,
+      `Transaction Failed: can't deposit to ${
+        (isUserExist.isDeleted && "Deleted") ||
+        (isUserExist.isSuspended && "Suspended")
+      }`
+    );
   }
 
-  if (isWalletExist.isBlock) {
+  if (
+    isUserExist.wallet &&
+    (isUserExist.wallet as unknown as IWallet).isBlock
+  ) {
     throw new AppError(
       httpsStatusCodes.NOT_ACCEPTABLE,
       "Transaction failed: The destination wallet is currently blocked. Please contact support for assistance."
     );
   }
   if (
-    isWalletExist.user &&
-    ((isWalletExist.user as unknown as IUser).isSuspended ||
-      (isWalletExist.user as unknown as IUser).isDeleted)
+    isUserExist.agent &&
+    (isUserExist.agent as unknown as IAgent).status === IAgentStatus.INACTIVE
   ) {
     throw new AppError(
       httpsStatusCodes.NOT_ACCEPTABLE,
       `Transaction failed: The destination user is currently ${
-        (isWalletExist.user as unknown as IUser).isSuspended
-          ? "Suspended"
-          : (isWalletExist.user as unknown as IUser).isDeleted
-          ? "Deleted"
-          : ""
+        (isUserExist.agent as unknown as IAgent).status
       } . Please contact support for assistance.`
     );
   }
-  return;
+  const user = {
+    ...isUserExist,
+    wallet: isUserExist.wallet && isUserExist.wallet._id,
+    agent: isUserExist.agent && isUserExist.agent._id,
+  };
+  return {user};
 };

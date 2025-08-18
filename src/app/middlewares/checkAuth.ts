@@ -41,7 +41,7 @@ export const checkAuth =
         );
       }
 
-      if (isUserExist.failedLoginAttempts  && isUserExist.lockUntil) {
+      if (isUserExist.failedLoginAttempts && isUserExist.lockUntil) {
         if (
           isUserExist.failedLoginAttempts >= 3 ||
           new Date(isUserExist.lockUntil).getTime() > Date.now()
@@ -57,6 +57,7 @@ export const checkAuth =
         role: isUserExist.role,
         phone: isUserExist.phone,
         email: isUserExist.email,
+        wallet: isUserExist.wallet,
       };
       next();
     } catch (error: any) {
