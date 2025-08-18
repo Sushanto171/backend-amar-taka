@@ -1,20 +1,40 @@
 import { ClientSession } from "mongoose";
 import { AppError } from "../errorHelpers/AppError";
 import { IAgent, IAgentStatus } from "../modules/agent/agent.interface";
+import {
+  ITransaction,
+  ITransactionType,
+} from "../modules/transaction/transaction.interface";
+import { IRole } from "../modules/user/user.interface";
 import { User } from "../modules/user/user.model";
 import { IWallet } from "../modules/wallet/wallet.interface";
 import { httpsStatusCodes } from "./https-status-codes";
 
 export const checkAccountAndWalletHealth = async (
-  phone: string,
+  payload: ITransaction,
   session: ClientSession
 ) => {
+  const phone = payload.phone;
+  const checkAgent =
+    payload.type === ITransactionType.CASH_IN
+      ? IRole.USER
+      : payload.type === ITransactionType.CASH_OUT
+      ? IRole.AGENT
+      : IRole.USER;
   const isUserExist = await User.findOne({ phone })
     .populate(["wallet", "agent"])
     .session(session);
   if (!isUserExist) {
     throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found!");
   }
+  if (!checkAgent?.includes(isUserExist.role)) {
+    console.log(checkAgent?.includes(isUserExist.role), isUserExist);
+    throw new AppError(
+      httpsStatusCodes.BAD_REQUEST,
+      `This user is not ${checkAgent}`
+    );
+  }
+
   if (isUserExist.isDeleted || isUserExist.isSuspended) {
     throw new AppError(
       httpsStatusCodes.NOT_ACCEPTABLE,
@@ -46,9 +66,9 @@ export const checkAccountAndWalletHealth = async (
     );
   }
   const user = {
-    ...isUserExist,
+    user: isUserExist,
     wallet: isUserExist.wallet && isUserExist.wallet._id,
     agent: isUserExist.agent && isUserExist.agent._id,
   };
-  return {user};
+  return user;
 };

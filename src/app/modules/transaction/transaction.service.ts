@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { startSession, Types } from "mongoose";
 import { AppError } from "../../errorHelpers/AppError";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
@@ -9,6 +10,10 @@ import { ClientSession } from "mongoose";
 
 import { calculatePercent } from "../../utils/calculatePercent";
 import { checkAccountAndWalletHealth } from "../../utils/checkAccountAndWalletHealth";
+import {
+  checkSameNumber,
+  checkTransactionTypeWithRole,
+} from "../../utils/checkTransactionTypeWithRole";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
 import {
   IAuditActionType,
@@ -32,13 +37,13 @@ const createTransaction = async (
     session.startTransaction();
   }
   try {
+    checkSameNumber(req); //verify duplicate 
+    checkTransactionTypeWithRole(req.user.role, payload); //verify action + transaction type
     let healthResponse;
-    if (!payload.toWallet) {
-      healthResponse = await checkAccountAndWalletHealth(
-        payload.phone,
-        session
-      );
+    if (!payload.toWallet) { // if is not provide toWallet id. therefore verify is wallet and user wether 
+      healthResponse = await checkAccountAndWalletHealth(payload, session);
     }
+
     const transPayload: ITransaction = {
       fromWallet: payload.fromWallet,
       phone: payload.phone,
@@ -59,7 +64,9 @@ const createTransaction = async (
 
     await auditLogsService.createAuditLog({
       payload: {
-        action: IAuditActionType.CASH_IN,
+        action:
+          (payload.type as unknown as IAuditActionType) ||
+          IAuditActionType.CASH_IN,
         targetWallet:
           payload.toWallet ||
           (healthResponse && (healthResponse.user.wallet as Types.ObjectId)),
@@ -80,14 +87,10 @@ const createTransaction = async (
       await session.endSession();
     }
     return transaction;
-  } catch (error) {
-    console.log("Transaction creation error:", error);
+  } catch (error: any) {
     await session.abortTransaction();
     await session.endSession();
-    throw new AppError(
-      httpsStatusCodes.INTERNAL_SERVER_ERROR,
-      "Transaction creation error."
-    );
+    throw new AppError(httpsStatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
 };
 
@@ -104,10 +107,10 @@ const getTransactionByUserId = async (userId: string) => {
   const transactions = await Transaction.find({
     $or: [
       {
-        wallet: isUserExist.wallet,
+        toWallet: isUserExist.wallet,
       },
       {
-        destinationWallet: isUserExist.wallet,
+        fromWallet: isUserExist.wallet,
       },
     ],
   });
@@ -153,6 +156,12 @@ const deposit = async (req: Request) => {
         "Transaction does not found."
       );
     }
+    if (isExistTransaction.status === ITransactionStatus.SUCCESS) {
+      throw new AppError(
+        httpsStatusCodes.BAD_REQUEST,
+        "This transaction has already been processed."
+      );
+    }
     if (isExistTransaction.amount > agentWallet.balance) {
       throw new AppError(httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
     }
@@ -175,8 +184,7 @@ const deposit = async (req: Request) => {
       }
     );
 
-   
-   await Wallet.findByIdAndUpdate(
+    await Wallet.findByIdAndUpdate(
       isExistTransaction.toWallet,
       {
         $inc: {
@@ -244,10 +252,121 @@ const deposit = async (req: Request) => {
   }
 };
 
+const withdraw = async (req: Request) => {
+  const session = await startSession();
+  session.startTransaction();
+  let isExistTransaction;
+  const { transactionId } = req.body;
+  const userWallet = req.user.wallet as IWallet;
+
+  try {
+    isExistTransaction = await Transaction.findById(transactionId).session(
+      session
+    );
+    if (!isExistTransaction) {
+      throw new AppError(
+        httpsStatusCodes.NOT_FOUND,
+        "Transaction does not found."
+      );
+    }
+
+    const calculation = calculatePercent({
+      amount: isExistTransaction.amount,
+      type: "WITHDRAW",
+    });
+    const costAmount =
+      isExistTransaction.amount + (calculation.deductFee as number);
+    if (userWallet.balance < costAmount) {
+      throw new AppError(httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
+    }
+
+    const transaction = await Transaction.findByIdAndUpdate(
+      isExistTransaction._id,
+      {
+        status: ITransactionStatus.SUCCESS,
+        fee: calculation.deductFee,
+      },
+      {
+        session,
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    await Wallet.findByIdAndUpdate(
+      isExistTransaction.fromWallet,
+      {
+        $inc: {
+          balance: -(
+            isExistTransaction.amount + (calculation.deductFee as number)
+          ),
+        },
+      },
+      { runValidators: true, session, new: true }
+    );
+
+    await Wallet.findByIdAndUpdate(
+      isExistTransaction.toWallet,
+      {
+        $inc: {
+          balance: +isExistTransaction.amount,
+          revenue: +(calculation.agentRevenue as number),
+        },
+      },
+      { session, runValidators: true, new: true }
+    );
+
+    await updateSystemWallet({
+      revenue: calculation.systemRevenue,
+      session,
+    });
+
+    await auditLogsService.createAuditLog({
+      payload: {
+        action: IAuditActionType.CASH_OUT,
+        targetWallet: isExistTransaction.toWallet,
+        actor: userWallet._id as Types.ObjectId,
+        actorWallet: isExistTransaction.fromWallet,
+        status: IAuditStatus.SUCCESS,
+        metadata: {
+          amount: isExistTransaction.amount,
+          transactionId: isExistTransaction._id,
+        },
+      },
+      session,
+      req,
+    });
+    await session.commitTransaction();
+    return transaction;
+  } catch (error) {
+    await auditLogsService.createAuditLog({
+      payload: {
+        action: IAuditActionType.CASH_OUT,
+        targetWallet: isExistTransaction
+          ? (isExistTransaction.toWallet as Types.ObjectId)
+          : undefined,
+        actor: userWallet.user._id,
+        actorWallet: userWallet._id,
+        status: IAuditStatus.FAILED,
+        metadata: {
+          amount: isExistTransaction ? isExistTransaction.amount : undefined,
+        },
+      },
+      session,
+      req,
+    });
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    await session.endSession();
+  }
+};
+
 export const transactionService = {
   createTransaction,
   getAllTransactions,
   getTransactionByUserId,
   getSingleTransaction,
   deposit,
+  withdraw,
 };
