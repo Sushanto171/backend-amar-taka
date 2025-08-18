@@ -70,10 +70,22 @@ const deposit = catchAsync(async (req, res) => {
   });
 });
 
+const withdraw = catchAsync(async (req, res) => {
+  const transaction = await transactionService.withdraw(req);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.CREATED,
+    message: "Cash out Success.",
+    data: transaction,
+  });
+});
+
 export const transactionController = {
   createTransaction,
   getAllTransactions,
   getTransactionByUserId,
   getSingleTransaction,
   deposit,
+  withdraw,
 };
