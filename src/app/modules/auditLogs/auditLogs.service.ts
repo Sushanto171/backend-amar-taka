@@ -15,11 +15,16 @@ type ILog = Pick<
   | "metadata"
 >;
 
+export interface ICreateAudit {
+  req: Request;
+  payload: ILog;
+  session?: ClientSession;
+}
+
 const createAuditLog = async (
-  req: Request,
-  payload: ILog,
-  session?: ClientSession
+logInfo: ICreateAudit
 ) => {
+  const {req, payload, session} = logInfo
   const userInfo = getClientInfo(req);
 
   const logPayload: IAuditLogs = {
@@ -37,6 +42,6 @@ const createAuditLog = async (
   return {};
 };
 
-export const auditLogs = {
+export const auditLogsService = {
   createAuditLog,
 };

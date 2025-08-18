@@ -8,7 +8,7 @@ import {
   IAuditActionType,
   IAuditStatus,
 } from "../auditLogs/auditLogs.interface";
-import { auditLogs } from "../auditLogs/auditLogs.service";
+import { auditLogsService } from "../auditLogs/auditLogs.service";
 import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { httpsStatusCodes } from "./../../utils/https-status-codes";
@@ -47,15 +47,15 @@ const login = async (
   );
 
   if (!matchedPassword) {
-    await auditLogs.createAuditLog(
+    await auditLogsService.createAuditLog({
       req,
-      {
+      payload: {
         actor: isUserExist._id,
         action: IAuditActionType.LOG_IN,
         status: IAuditStatus.FAILED,
       },
-      session
-    );
+      session,
+    });
     await temporarilyLockAccount(isUserExist._id, session);
   }
 
@@ -71,21 +71,25 @@ const login = async (
   isUserExist.lockUntil = null;
 
   await isUserExist.save({ session });
-  
+
   const userToken = createUserTokens(isUserExist);
-  
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password, ...user } = isUserExist.toObject();
 
-  await auditLogs.createAuditLog(req, {
-    actor: isUserExist._id,
-    action: IAuditActionType.LOG_IN,
-    status: IAuditStatus.SUCCESS,
+  await auditLogsService.createAuditLog({
+    req,
+    payload: {
+      actor: isUserExist._id,
+      action: IAuditActionType.LOG_IN,
+      status: IAuditStatus.SUCCESS,
+    },
+    session,
   });
 
   await session.commitTransaction();
   await session.endSession();
-  
+
   return {
     user: {
       _id: user._id,

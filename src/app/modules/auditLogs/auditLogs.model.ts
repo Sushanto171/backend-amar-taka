@@ -20,7 +20,7 @@ const DeviceInfoSchema = new Schema<IDeviceInfo>(
 
 const AuditLogsSchema = new Schema<IAuditLogs>(
   {
-    actor: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    actor: { type: Schema.Types.ObjectId, ref: "User" , default : "System"},
     actorWallet: { type: Schema.Types.ObjectId, ref: "Wallet" },
     targetUser: { type: Schema.Types.ObjectId, ref: "User" },
     targetWallet: { type: Schema.Types.ObjectId, ref: "Wallet" },

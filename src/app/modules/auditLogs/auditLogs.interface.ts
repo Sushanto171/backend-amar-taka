@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Types } from "mongoose";
+import { ITransactionStatus } from "../transaction/transaction.interface";
 
-export enum IAuditStatus {
+export enum IAuditStatus  {
   PENDING = "PENDING",
   PROCESSING = "PROCESSING",
   SUCCESS = "SUCCESS",
@@ -25,7 +26,7 @@ export enum IAuditActionType {
 
 export interface IAuditMetadata {
   amount?: number;
-  transactionId?: string;
+  transactionId?: Types.ObjectId;
   currency?: string;
   [key: string]: any;
 }
@@ -39,12 +40,12 @@ export interface IDeviceInfo {
 }
 export interface IAuditLogs {
   _id?: Types.ObjectId;
-  actor: Types.ObjectId; //initiate user id
+  actor: Types.ObjectId | "System"; //initiate user id
   actorWallet?: Types.ObjectId;
   targetUser?: Types.ObjectId;
   targetWallet?: Types.ObjectId; // destination user id
   action: IAuditActionType;
-  status: IAuditStatus;
+  status: IAuditStatus | ITransactionStatus;
   ipAddress: string;
   device: IDeviceInfo;
   metadata?: IAuditMetadata;

@@ -1,5 +1,4 @@
 import { model, Schema } from "mongoose";
-import { IRole } from "../user/user.interface";
 import {
   ITransaction,
   ITransactionStatus,
@@ -8,7 +7,7 @@ import {
 
 const transactionSchema = new Schema<ITransaction>(
   {
-    wallet: {
+    fromWallet: {
       type: Schema.Types.ObjectId,
       required: true,
       ref: "Wallet",
@@ -25,18 +24,19 @@ const transactionSchema = new Schema<ITransaction>(
       enum: [...Object.values(ITransactionStatus)],
       required: true,
     },
-    destinationWallet: {
+    toWallet: {
       type: Schema.Types.ObjectId,
-      required: true,
       ref: "Wallet",
+    },
+    phone: {
+      type: String,
+      required: true,
+      min: 11,
+      max: 14,
+      ref: "User",
     },
     reference: { type: String, sparse: true, unique: true },
     fee: { type: Number, required: true, min: 0 },
-    initiateRole: {
-      type: String,
-      enum: [...Object.values(IRole)],
-      required: true,
-    },
     bankAccount: { type: String },
     metaData: { type: Schema.Types.Mixed, default: {} },
   },

@@ -4,14 +4,23 @@ import { IWalletType } from "../modules/wallet/wallet.interface";
 import { Wallet } from "../modules/wallet/wallet.model";
 import { httpsStatusCodes } from "./https-status-codes";
 
-export const updateSystemWallet = async (
-  amount: number,
-  session: ClientSession
-) => {
+export interface IUpdateSystem {
+  session: ClientSession;
+  amount?: number;
+  revenue?: number;
+}
+
+export const updateSystemWallet = async (payload: IUpdateSystem) => {
+  const { session, amount, revenue } = payload;
   try {
     const system = await Wallet.findOneAndUpdate(
       { type: IWalletType.SYSTEM },
-      { $inc: { balance: -amount } },
+      {
+        $inc: {
+          ...(amount ? { balance: -amount } : {}),
+          ...(revenue ? { revenue: +revenue } : {}),
+        },
+      },
       { session, runValidators: true }
     );
     return system;

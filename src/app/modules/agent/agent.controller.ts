@@ -27,9 +27,7 @@ const getSingleAgent = catchAsync(async (req, res) => {
 });
 
 const verifyAgent = catchAsync(async (req, res) => {
-  const agentId = req.params.agentId;
-
-  const agent = await agentService.verifyAgent(agentId, req.body);
+ const agent = await agentService.verifyAgent(req);
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,

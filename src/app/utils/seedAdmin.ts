@@ -27,7 +27,7 @@ export const seedAdmin = async () => {
       return;
     }
 
-    const hashedPassword = hashPassword(
+    const hashedPassword = await hashPassword(
       envVars.ADMIN.ADMIN_PASSWORD,
       envVars.BCRYPT_SALT_ROUND
     );
