@@ -10,15 +10,12 @@ const createTransaction = catchAsync(async (req, res) => {
     fromWallet: req.user.wallet,
     userId: req.user.userId,
   } as ITransaction;
-  const transactions = await transactionService.createTransaction(
-    req,
-    req.body
-  );
+  const transaction = await transactionService.createTransaction(req, req.body);
   sendResponse(res, {
     success: true,
-    statusCode: httpsStatusCodes.OK,
-    message: "All Transaction Retrieved Successfully.",
-    data: transactions,
+    statusCode: httpsStatusCodes.CREATED,
+    message: "Transaction created Successfully.",
+    data: transaction,
   });
 });
 

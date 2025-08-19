@@ -17,6 +17,8 @@ export enum ITransactionStatus {
   REVERSED = "REVERSED",
   EXPIRED = "EXPIRED",
   ON_HOLD = "ON_HOLD",
+  VERIFIED = "VERIFIED",
+  REJECTED = "REJECTED",
 }
 
 export interface ITransaction {
