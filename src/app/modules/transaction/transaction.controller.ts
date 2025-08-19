@@ -42,11 +42,7 @@ const getTransactionByUserId = catchAsync(async (req, res) => {
 
 const getSingleTransaction = catchAsync(async (req, res) => {
   const transId = req.params.transactionId;
-  const userId = req.user.userId;
-  const transactions = await transactionService.getSingleTransaction(
-    userId,
-    transId
-  );
+  const transactions = await transactionService.getSingleTransaction(transId);
 
   sendResponse(res, {
     success: true,

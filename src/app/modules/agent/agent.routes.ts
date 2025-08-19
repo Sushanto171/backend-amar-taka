@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { checkAuth } from "../../middlewares/checkAuth";
-import { checkWallet } from "../../middlewares/checkWallet";
 import { validateRequest } from "../../middlewares/validateZodSchema";
 import { IRole } from "../user/user.interface";
 import { agentController } from "./agent.controller";
@@ -16,7 +15,6 @@ router.post(
   "/registration",
   validateRequest(agentCoreZodSchema),
   checkAuth([IRole.USER]),
-  checkWallet,
   agentController.registration
 );
 

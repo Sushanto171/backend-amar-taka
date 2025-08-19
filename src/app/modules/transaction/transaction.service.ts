@@ -1,17 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import mongoose, { startSession, Types } from "mongoose";
-import { AppError } from "../../errorHelpers/AppError";
-import { httpsStatusCodes } from "../../utils/https-status-codes";
-import { User } from "../user/user.model";
-import { Transaction } from "./transaction.model";
 import { Request } from "express";
-import { ClientSession } from "mongoose";
+import { ClientSession, startSession, Types } from "mongoose";
+import { AppError } from "../../errorHelpers/AppError";
 import { calculatePercent } from "../../utils/calculatePercent";
 import { checkToUserWithWallet } from "../../utils/checkToUserWithWallet";
 import {
   checkSameNumber,
   checkTransactionTypeWithRole,
 } from "../../utils/checkTransactionTypeWithRole";
+import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
 import { validateTransactionBeforeProcess } from "../../utils/validateTransactionBeforeProcess";
 import {
@@ -19,9 +16,15 @@ import {
   IAuditStatus,
 } from "../auditLogs/auditLogs.interface";
 import { auditLogsService } from "../auditLogs/auditLogs.service";
+import { User } from "../user/user.model";
 import { IWallet } from "../wallet/wallet.interface";
 import { Wallet } from "../wallet/wallet.model";
-import { ITransaction, ITransactionStatus } from "./transaction.interface";
+import {
+  ITransaction,
+  ITransactionStatus,
+  ITransactionType,
+} from "./transaction.interface";
+import { Transaction } from "./transaction.model";
 
 const createTransaction = async (
   req: Request,
@@ -131,26 +134,8 @@ const getTransactionByUserId = async (userId: string) => {
   return transactions;
 };
 
-const getSingleTransaction = async (userId: string, transId: string) => {
-  const isUserExist = await User.findById(userId);
-  if (!isUserExist) {
-    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not exist");
-  }
-  const transaction = await Transaction.findOne({
-    $and: [
-      {
-        _id: new mongoose.Types.ObjectId(transId),
-        $or: [
-          {
-            wallet: isUserExist.wallet,
-          },
-          {
-            destinationWallet: isUserExist.wallet,
-          },
-        ],
-      },
-    ],
-  });
+const getSingleTransaction = async (transId: string) => {
+  const transaction = await Transaction.findById(transId);
   return transaction;
 };
 
@@ -160,7 +145,11 @@ const deposit = async (req: Request) => {
   let transaction;
   const agentWallet = req.user.wallet as IWallet;
   try {
-    transaction = await validateTransactionBeforeProcess(req, session);
+    transaction = await validateTransactionBeforeProcess(
+      req,
+      session,
+      ITransactionType.CASH_IN
+    );
 
     if (transaction.amount > agentWallet.balance) {
       throw new AppError(httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
@@ -253,7 +242,11 @@ const withdraw = async (req: Request) => {
   const userWallet = req.user.wallet as IWallet;
 
   try {
-    transaction = await validateTransactionBeforeProcess(req, session);
+    transaction = await validateTransactionBeforeProcess(
+      req,
+      session,
+      ITransactionType.CASH_OUT
+    );
 
     const calculation = calculatePercent({
       amount: transaction.amount,
@@ -346,7 +339,11 @@ const P2P = async (req: Request) => {
   let transaction;
   const fromWallet = req.user.wallet as IWallet;
   try {
-    transaction = await validateTransactionBeforeProcess(req, session);
+    transaction = await validateTransactionBeforeProcess(
+      req,
+      session,
+      ITransactionType.P2P_TRANSFER
+    );
 
     const calculation = calculatePercent({
       amount: transaction.amount,

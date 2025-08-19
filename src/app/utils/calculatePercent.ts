@@ -24,7 +24,7 @@ export const calculatePercent = (payload: IPayload) => {
     systemRevenue = deductFee - agentRevenue;
   }
   if (payload.type === "P2P") {
-    deductFee = (payload.amount / 100) * envVars.P2P.P2P_PER_THOUSAND_CHARGE;
+    deductFee = (payload.amount / 100000) * envVars.P2P.P2P_PER_THOUSAND_CHARGE;
     systemRevenue = deductFee;
   }
   return { deductFee, agentRevenue, systemRevenue };

@@ -21,3 +21,8 @@ export const transactionZodSchema = z.object({
 
   metaData: z.record(z.string(), z.any()).optional(), // flexible metadata
 });
+
+export const transactionActionZodSchema = z.object({
+  transactionId: z.string({ error: "Transaction id is required!" }),
+  password: z.string("Password is required!"),
+});

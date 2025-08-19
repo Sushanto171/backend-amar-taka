@@ -13,9 +13,9 @@ export const checkTransactionTypeWithRole = (
 ) => {
   if (
     (userRole === IRole.AGENT && payload.type !== ITransactionType.CASH_IN) ||
-    (userRole === IRole.USER && payload.type !== ITransactionType.CASH_OUT) ||
-    (userRole === IRole.USER && payload.type !== ITransactionType.P2P_TRANSFER)
+    (userRole === IRole.USER && payload.type === ITransactionType.CASH_IN)
   ) {
+    console.log(userRole, payload.type);
     throw new AppError(
       httpsStatusCodes.NOT_ACCEPTABLE,
       "Your are not permitted for this action!"

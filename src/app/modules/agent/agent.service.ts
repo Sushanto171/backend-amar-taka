@@ -101,7 +101,7 @@ const verifyAgent = async (req: Request) => {
       agent = await Agent.findByIdAndUpdate(
         agentId,
         { kycStatus: payload.kycStatus },
-        { session }
+        { session, new : true, runValidators: true }
       );
       await User.findByIdAndUpdate(
         isRegistrationExist.user,
