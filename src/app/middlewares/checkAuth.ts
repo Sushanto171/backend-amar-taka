@@ -58,6 +58,7 @@ export const checkAuth =
         phone: isUserExist.phone,
         email: isUserExist.email,
         wallet: isUserExist.wallet,
+        agent: isUserExist.agent,
       };
       next();
     } catch (error: any) {

@@ -21,12 +21,9 @@ export interface ICreateAudit {
   session?: ClientSession;
 }
 
-const createAuditLog = async (
-logInfo: ICreateAudit
-) => {
-  const {req, payload, session} = logInfo
+const createAuditLog = async (logInfo: ICreateAudit) => {
+  const { req, payload, session } = logInfo;
   const userInfo = getClientInfo(req);
-
   const logPayload: IAuditLogs = {
     ...payload,
     ipAddress: userInfo.ip,
@@ -38,7 +35,7 @@ logInfo: ICreateAudit
       rawUserAgent: userInfo.rawUserAgent,
     },
   };
-  await AuditLogs.create([logPayload], { session });
+  await AuditLogs.create([logPayload], session && { session });
   return {};
 };
 

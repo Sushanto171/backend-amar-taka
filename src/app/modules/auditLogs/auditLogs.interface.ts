@@ -2,7 +2,7 @@
 import { Types } from "mongoose";
 import { ITransactionStatus } from "../transaction/transaction.interface";
 
-export enum IAuditStatus  {
+export enum IAuditStatus {
   PENDING = "PENDING",
   PROCESSING = "PROCESSING",
   SUCCESS = "SUCCESS",
@@ -11,6 +11,8 @@ export enum IAuditStatus  {
   REVERSED = "REVERSED",
   EXPIRED = "EXPIRED",
   ON_HOLD = "ON_HOLD",
+  VERIFIED = "VERIFIED",
+  REJECTED = "REJECTED",
 }
 
 export enum IAuditActionType {
@@ -22,12 +24,16 @@ export enum IAuditActionType {
   PASSWORD_CHANGE = "PASSWORD_CHANGE",
   LOG_IN = "LOG_IN",
   LOG_OUT = "LOG_OUT",
+  REGISTRATION = "REGISTRATION",
+  REGISTRATION_USER = "REGISTRATION_USER",
+  REGISTRATION_AGENT = "REGISTRATION_AGENT",
 }
 
 export interface IAuditMetadata {
   amount?: number;
   transactionId?: Types.ObjectId;
   currency?: string;
+  message?: string;
   [key: string]: any;
 }
 

@@ -7,7 +7,7 @@ import {
   agentCoreZodSchema,
   agentStatusZodSchema,
   agentUpdateZodSchema,
-} from "./agent.validatior";
+} from "./agent.validator";
 
 const router = Router();
 

@@ -35,7 +35,7 @@ const transactionSchema = new Schema<ITransaction>(
       max: 14,
       ref: "User",
     },
-    reference: { type: String, sparse: true, unique: true },
+    reference: { type: String },
     fee: { type: Number, required: true, min: 0 },
     bankAccount: { type: String },
     metaData: { type: Schema.Types.Mixed, default: {} },

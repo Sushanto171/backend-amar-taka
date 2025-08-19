@@ -10,15 +10,12 @@ const createTransaction = catchAsync(async (req, res) => {
     fromWallet: req.user.wallet,
     userId: req.user.userId,
   } as ITransaction;
-  const transactions = await transactionService.createTransaction(
-    req,
-    req.body
-  );
+  const transaction = await transactionService.createTransaction(req, req.body);
   sendResponse(res, {
     success: true,
-    statusCode: httpsStatusCodes.OK,
-    message: "All Transaction Retrieved Successfully.",
-    data: transactions,
+    statusCode: httpsStatusCodes.CREATED,
+    message: "Transaction created Successfully.",
+    data: transaction,
   });
 });
 
@@ -45,11 +42,7 @@ const getTransactionByUserId = catchAsync(async (req, res) => {
 
 const getSingleTransaction = catchAsync(async (req, res) => {
   const transId = req.params.transactionId;
-  const userId = req.user.userId;
-  const transactions = await transactionService.getSingleTransaction(
-    userId,
-    transId
-  );
+  const transactions = await transactionService.getSingleTransaction(transId);
 
   sendResponse(res, {
     success: true,
@@ -81,6 +74,17 @@ const withdraw = catchAsync(async (req, res) => {
   });
 });
 
+const P2P = catchAsync(async (req, res) => {
+  const transaction = await transactionService.P2P(req);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.CREATED,
+    message: "Cash out Success.",
+    data: transaction,
+  });
+});
+
 export const transactionController = {
   createTransaction,
   getAllTransactions,
@@ -88,4 +92,5 @@ export const transactionController = {
   getSingleTransaction,
   deposit,
   withdraw,
+  P2P,
 };

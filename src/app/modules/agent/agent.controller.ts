@@ -4,9 +4,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import { agentService } from "./agent.service";
 
 const registration = catchAsync(async (req, res) => {
-  const payload = req.body;
-  const userId = req.user.userId;
-  const registrationInfo = await agentService.registration(userId, payload);
+  const registrationInfo = await agentService.registration(req);
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.CREATED,
@@ -27,7 +25,7 @@ const getSingleAgent = catchAsync(async (req, res) => {
 });
 
 const verifyAgent = catchAsync(async (req, res) => {
- const agent = await agentService.verifyAgent(req);
+  const agent = await agentService.verifyAgent(req);
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
