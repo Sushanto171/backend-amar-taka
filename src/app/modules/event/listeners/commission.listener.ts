@@ -1,5 +1,5 @@
-import { ICommission } from "../../agent/commission/commission.interface";
-import { Commission } from "../../agent/commission/commission.model";
+import { ICommission } from "../../commission/commission.interface";
+import { Commission } from "../../commission/commission.model";
 
 const createCommission = async (payload: ICommission) => {
   const commission = await Commission.create(payload);
