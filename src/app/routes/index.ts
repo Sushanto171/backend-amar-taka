@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { AgentRoutes } from "../modules/agent/agent.routes";
-import { AuditLogs } from "../modules/auditLogs/auditLogs.routes";
+import { CommissionRoutes } from "../modules/agent/commission/commission.routes";
+import { AuditLogsRoutes } from "../modules/auditLogs/auditLogs.routes";
 import { AuthRoutes } from "../modules/auth/auth.routes";
 import { TransactionRoutes } from "../modules/transaction/transaction.routes";
 import { UserRoutes } from "../modules/user/user.routes";
@@ -36,7 +37,11 @@ const moduleRoutes: IRoute[] = [
   },
   {
     path: "/audit-logs",
-    router: AuditLogs,
+    router: AuditLogsRoutes,
+  },
+  {
+    path: "/commission",
+    router: CommissionRoutes,
   },
 ];
 

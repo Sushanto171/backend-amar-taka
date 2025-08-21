@@ -15,7 +15,6 @@ const myWallet = catchAsync(async (req, res) => {
 });
 
 const getAllWallets = catchAsync(async (req, res) => {
-
   const wallets = await walletService.getAllWallets();
   sendResponse(res, {
     success: true,
@@ -25,7 +24,43 @@ const getAllWallets = catchAsync(async (req, res) => {
   });
 });
 
+const deposit = catchAsync(async (req, res) => {
+  const transaction = await walletService.deposit(req);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.CREATED,
+    message: "Deposit Success.",
+    data: transaction,
+  });
+});
+
+const withdraw = catchAsync(async (req, res) => {
+  const transaction = await walletService.withdraw(req);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.CREATED,
+    message: "Cash out Success.",
+    data: transaction,
+  });
+});
+
+const P2P = catchAsync(async (req, res) => {
+  const transaction = await walletService.P2P(req);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.CREATED,
+    message: "Cash out Success.",
+    data: transaction,
+  });
+});
+
 export const walletController = {
   myWallet,
   getAllWallets,
+  deposit,
+  withdraw,
+  P2P,
 };

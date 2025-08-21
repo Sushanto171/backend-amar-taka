@@ -35,8 +35,8 @@ const createAuditLog = async (logInfo: ICreateAudit) => {
       rawUserAgent: userInfo.rawUserAgent,
     },
   };
-  await AuditLogs.create([logPayload], session && { session });
-  return {};
+  const log = await AuditLogs.create([logPayload], session && { session });
+  return log;
 };
 
 export const auditLogsService = {

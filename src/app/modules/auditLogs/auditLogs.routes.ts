@@ -2,4 +2,4 @@ import { Router } from "express";
 
 const router = Router();
 
-export const AuditLogs = router;
+export const AuditLogsRoutes = router;
