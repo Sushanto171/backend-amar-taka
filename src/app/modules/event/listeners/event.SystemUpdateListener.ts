@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { eventBus } from "../eventBus";
+import { commissionService } from "./commission.listener";
 
-eventBus.on("trigger", (payload: any) => {
-  console.log(payload);
-  console.log("Root route triggered");
+eventBus.on("commission", async (payload) => {
+  await commissionService.createCommission(payload);
 });

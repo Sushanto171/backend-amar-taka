@@ -16,6 +16,7 @@ import {
   IAuditStatus,
 } from "../auditLogs/auditLogs.interface";
 import { auditLogsService } from "../auditLogs/auditLogs.service";
+import { eventBus } from "../event/eventBus";
 import { User } from "../user/user.model";
 import { IWallet } from "../wallet/wallet.interface";
 import { Wallet } from "../wallet/wallet.model";
@@ -187,13 +188,22 @@ const deposit = async (req: Request) => {
       { session, runValidators: true, new: true }
     );
 
+    eventBus.emit("commission", {
+      fee: calculation.agentRevenue as number,
+      user: req.user.userId,
+    });
+
     // increment system revenue
-    await updateSystemWallet({
+    const system = await updateSystemWallet({
       revenue: calculation.systemRevenue,
       session,
     });
 
-    // create deposit log
+    eventBus.emit("commission", {
+      fee: calculation.systemRevenue as number,
+      user: system?._id as Types.ObjectId,
+    });
+
     await auditLogsService.createAuditLog({
       payload: {
         action: IAuditActionType.CASH_IN,
@@ -209,6 +219,21 @@ const deposit = async (req: Request) => {
       session,
       req,
     });
+
+    // const depositLog: ILog = {
+    //   action: IAuditActionType.CASH_IN,
+    //   targetWallet: transaction.toWallet,
+    //   actor: agentWallet._id as Types.ObjectId,
+    //   actorWallet: transaction.fromWallet,
+    //   status: IAuditStatus.SUCCESS,
+    //   metadata: {
+    //     amount: transaction.amount,
+    //     transactionId: transaction._id,
+    //   },
+    // };
+
+    // eventBus.emit("log", { req, payload: depositLog, session });
+
     await session.commitTransaction();
     return transaction;
   } catch (error) {
@@ -285,11 +310,25 @@ const withdraw = async (req: Request) => {
       { session, runValidators: true, new: true }
     );
 
+    eventBus.emit("commission", {
+      // create agent commission
+      fee: calculation.agentRevenue as number,
+      user: transaction.toWallet as Types.ObjectId,
+    });
+
     // increment system revenue
-    await updateSystemWallet({
+    const system = await updateSystemWallet({
       revenue: calculation.systemRevenue,
       session,
     });
+
+    if (system) {
+      //create system commission
+      eventBus.emit("commission", {
+        fee: calculation.systemRevenue as number,
+        user: system._id,
+      });
+    }
 
     // create withdraw log
     await auditLogsService.createAuditLog({
@@ -383,10 +422,17 @@ const P2P = async (req: Request) => {
     );
 
     // increment system wallet revenue
-    await updateSystemWallet({
+    const system = await updateSystemWallet({
       revenue: calculation.systemRevenue,
       session,
     });
+
+    if (system) {
+      eventBus.emit("commission", {
+        fee: calculation.systemRevenue as number,
+        user: system._id,
+      });
+    }
 
     // create action log
     await auditLogsService.createAuditLog({

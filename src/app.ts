@@ -3,6 +3,7 @@ import cors from "cors";
 import express, { Application, Request, Response } from "express";
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
 import { notFound } from "./app/middlewares/notFound";
+import "./app/modules/event/listeners/commission.listener";
 import "./app/modules/event/listeners/event.SystemUpdateListener";
 import { router } from "./app/routes";
 

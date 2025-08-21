@@ -4,7 +4,7 @@ import { getClientInfo } from "../../utils/userAgent";
 import { IAuditLogs } from "./auditLogs.interface";
 import { AuditLogs } from "./auditLogs.model";
 
-type ILog = Pick<
+export type ILog = Pick<
   IAuditLogs,
   | "action"
   | "actor"
