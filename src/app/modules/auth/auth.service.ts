@@ -1,8 +1,11 @@
 import { Request } from "express";
+import { JwtPayload } from "jsonwebtoken";
 import { startSession } from "mongoose";
+import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
 import { comparePassword } from "../../utils/bcryptjs";
-import { createUserTokens } from "../../utils/jwt";
+import { checkUserWithWallet } from "../../utils/checkUserWithWallet";
+import { createUserTokens, generateToken, verifyToken } from "../../utils/jwt";
 import { temporarilyLockAccount } from "../../utils/temporarilyLockAccount";
 import {
   IAuditActionType,
@@ -107,6 +110,31 @@ const login = async (
   };
 };
 
+const getNewAccessToken = async (refreshToken: string) => {
+  const decoded = verifyToken(
+    refreshToken,
+    envVars.JWT.JWT_REFRESH_SECRET
+  ) as JwtPayload;
+  const isUserExist = await User.findById(decoded.userId);
+  if (!isUserExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found!");
+  }
+  checkUserWithWallet(isUserExist);
+  const jwtPayload = {
+    role: isUserExist.role,
+    userId: isUserExist._id,
+    phone: isUserExist.phone,
+    email: isUserExist.email,
+  };
+  const accessToken = generateToken(
+    jwtPayload,
+    envVars.JWT.JWT_ACCESS_SECRET,
+    envVars.JWT.JWT_ACCESS_EXPIRATION
+  );
+  return { accessToken, refreshToken };
+};
+
 export const authService = {
   login,
+  getNewAccessToken,
 };
