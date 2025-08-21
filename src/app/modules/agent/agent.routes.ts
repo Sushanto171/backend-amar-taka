@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { checkAuth } from "../../middlewares/checkAuth";
+import { checkWallet } from "../../middlewares/checkWallet";
 import { validateRequest } from "../../middlewares/validateZodSchema";
+import { transactionActionZodSchema } from "../transaction/transaction.validator";
 import { IRole } from "../user/user.interface";
+import { walletController } from "../wallet/wallet.controller";
 import { agentController } from "./agent.controller";
 import {
   agentCoreZodSchema,
@@ -38,6 +41,29 @@ router.patch(
   validateRequest(agentUpdateZodSchema),
   checkAuth([IRole.ADMIN, IRole.AGENT]),
   agentController.updateAgent
+);
+
+router.post(
+  "/deposit",
+  validateRequest(transactionActionZodSchema),
+  checkAuth([IRole.AGENT]),
+  checkWallet,
+  walletController.deposit
+);
+router.post(
+  "/withdraw",
+  validateRequest(transactionActionZodSchema),
+  checkAuth([IRole.USER]),
+  checkWallet,
+  walletController.withdraw
+);
+
+router.post(
+  "/send-money",
+  validateRequest(transactionActionZodSchema),
+  checkAuth([IRole.USER]),
+  checkWallet,
+  walletController.P2P
 );
 
 export const AgentRoutes = router;

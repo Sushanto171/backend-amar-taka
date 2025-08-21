@@ -52,45 +52,9 @@ const getSingleTransaction = catchAsync(async (req, res) => {
   });
 });
 
-const deposit = catchAsync(async (req, res) => {
-  const transaction = await transactionService.deposit(req);
-
-  sendResponse(res, {
-    success: true,
-    statusCode: httpsStatusCodes.CREATED,
-    message: "Deposit Success.",
-    data: transaction,
-  });
-});
-
-const withdraw = catchAsync(async (req, res) => {
-  const transaction = await transactionService.withdraw(req);
-
-  sendResponse(res, {
-    success: true,
-    statusCode: httpsStatusCodes.CREATED,
-    message: "Cash out Success.",
-    data: transaction,
-  });
-});
-
-const P2P = catchAsync(async (req, res) => {
-  const transaction = await transactionService.P2P(req);
-
-  sendResponse(res, {
-    success: true,
-    statusCode: httpsStatusCodes.CREATED,
-    message: "Cash out Success.",
-    data: transaction,
-  });
-});
-
 export const transactionController = {
   createTransaction,
   getAllTransactions,
   getTransactionByUserId,
   getSingleTransaction,
-  deposit,
-  withdraw,
-  P2P,
 };

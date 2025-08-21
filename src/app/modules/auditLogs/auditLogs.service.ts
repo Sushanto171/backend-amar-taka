@@ -4,7 +4,7 @@ import { getClientInfo } from "../../utils/userAgent";
 import { IAuditLogs } from "./auditLogs.interface";
 import { AuditLogs } from "./auditLogs.model";
 
-type ILog = Pick<
+export type ILog = Pick<
   IAuditLogs,
   | "action"
   | "actor"
@@ -35,8 +35,8 @@ const createAuditLog = async (logInfo: ICreateAudit) => {
       rawUserAgent: userInfo.rawUserAgent,
     },
   };
-  await AuditLogs.create([logPayload], session && { session });
-  return {};
+  const log = await AuditLogs.create([logPayload], session && { session });
+  return log;
 };
 
 export const auditLogsService = {

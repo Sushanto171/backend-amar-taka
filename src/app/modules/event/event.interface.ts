@@ -1,8 +1,8 @@
-import { Types } from "mongoose";
+import { ICommission } from "../agent/commission/commission.interface";
+import { ICreateAudit } from "../auditLogs/auditLogs.service";
+
 
 export interface IEvents {
-  commission: {
-    fee: number;
-    user: Types.ObjectId;
-  };
+  commission: ICommission;
+  log: ICreateAudit;
 }
