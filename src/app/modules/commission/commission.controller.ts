@@ -1,6 +1,6 @@
-import { catchAsync } from "../../../utils/catchAsync";
-import { httpsStatusCodes } from "../../../utils/https-status-codes";
-import { sendResponse } from "../../../utils/sendResponse";
+import { catchAsync } from "../../utils/catchAsync";
+import { httpsStatusCodes } from "../../utils/https-status-codes";
+import { sendResponse } from "../../utils/sendResponse";
 import { commissionService } from "./commIssion.service";
 
 const getAllCommissions = catchAsync(async (req, res) => {

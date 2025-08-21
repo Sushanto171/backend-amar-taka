@@ -48,6 +48,11 @@ interface IRequiredVars {
   P2P: {
     P2P_PER_THOUSAND_CHARGE: number;
   };
+  TWILIO: {
+    ACCOUNT_SID: string;
+    AUTH_TOKEN: string;
+    TWILIO_PHONE_NUMBER: string;
+  };
 }
 
 const requiredVars = [
@@ -80,6 +85,9 @@ const requiredVars = [
   "SYSTEM_WITHDRAW_REVENUE_PERCENT",
   "AGENT_WITHDRAW_REVENUE_PERCENT",
   "P2P_PER_THOUSAND_CHARGE",
+  "ACCOUNT_SID",
+  "AUTH_TOKEN",
+  "TWILIO_PHONE_NUMBER",
 ];
 
 const loadEnvVariables = (): IRequiredVars => {
@@ -146,6 +154,11 @@ const loadEnvVariables = (): IRequiredVars => {
     },
     P2P: {
       P2P_PER_THOUSAND_CHARGE: Number(process.env.P2P_PER_THOUSAND_CHARGE),
+    },
+    TWILIO: {
+      ACCOUNT_SID: process.env.ACCOUNT_SID as string,
+      AUTH_TOKEN: process.env.AUTH_TOKEN as string,
+      TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER as string,
     },
   };
 };

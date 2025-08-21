@@ -100,17 +100,6 @@ const deposit = async (req: Request) => {
       revenue: calculation.agentRevenue,
     });
 
-    //  await Wallet.findByIdAndUpdate(
-    //   transaction.fromWallet,
-    //   {
-    //     $inc: {
-    //       balance: -transaction.amount,
-    //       revenue: +(calculation.agentRevenue as number),
-    //     },
-    //   },
-    //   { session, runValidators: true, new: true }
-    // );
-
     //create agent commission
     eventBus.emit("commission", {
       fee: calculation.agentRevenue as number,
@@ -148,6 +137,17 @@ const deposit = async (req: Request) => {
     });
 
     await session.commitTransaction();
+    eventBus.emit("sendSms", {
+      timeStamp: new Date(),
+      message: "Cash in Success",
+      agentNumber: req.user.phone,
+      userNumber: transaction.phone,
+      fee: transaction.fee,
+      amount: transaction.amount - Number(calculation.deductFee),
+      reference: transaction.reference,
+      transactionId: (transaction._id as Types.ObjectId).toHexString(),
+    });
+
     return transaction;
   } catch (error: any) {
     await auditLogsService.createAuditLog({
@@ -168,6 +168,12 @@ const deposit = async (req: Request) => {
       req,
     });
     await session.abortTransaction();
+    eventBus.emit("sendSms", {
+      message: error.message,
+      userNumber: transaction?.phone,
+      agentNumber: req.user.phone,
+      timeStamp: new Date(),
+    });
     throw error;
   } finally {
     await session.endSession();
@@ -258,6 +264,17 @@ const withdraw = async (req: Request) => {
       req,
     });
     await session.commitTransaction();
+    eventBus.emit("sendSms", {
+      timeStamp: new Date(),
+      message: "Cash out Success",
+      userNumber: req.user.phone,
+      agentNumber: transaction.phone,
+      fee: transaction.fee,
+      amount: transaction.amount + Number(calculation.deductFee),
+      reference: transaction.reference,
+      transactionId: (transaction._id as Types.ObjectId).toHexString(),
+    });
+
     return transaction;
   } catch (error: any) {
     await auditLogsService.createAuditLog({
@@ -278,6 +295,12 @@ const withdraw = async (req: Request) => {
       req,
     });
     await session.abortTransaction();
+    eventBus.emit("sendSms", {
+      message: error.message,
+      agentNumber: transaction?.phone,
+      userNumber: req.user.phone,
+      timeStamp: new Date(),
+    });
     throw error;
   } finally {
     await session.endSession();
@@ -360,6 +383,16 @@ const P2P = async (req: Request) => {
       req,
     });
     await session.commitTransaction();
+    eventBus.emit("sendSms", {
+      timeStamp: new Date(),
+      message: "Send money Success",
+      userNumber: req.user.phone,
+      agentNumber: transaction.phone, //to user
+      fee: transaction.fee,
+      amount: transaction.amount + Number(calculation.deductFee),
+      reference: transaction.reference,
+      transactionId: (transaction._id as Types.ObjectId).toHexString(),
+    });
     return transaction;
   } catch (error: any) {
     await auditLogsService.createAuditLog({
@@ -380,6 +413,12 @@ const P2P = async (req: Request) => {
       req,
     });
     await session.abortTransaction();
+    eventBus.emit("sendSms", {
+      message: error.message,
+      userNumber: transaction?.phone,
+      agentNumber: req.user.phone, // to user
+      timeStamp: new Date(),
+    });
     throw error;
   } finally {
     await session.endSession();

@@ -9,6 +9,7 @@ import {
   IAuditStatus,
 } from "../auditLogs/auditLogs.interface";
 import { auditLogsService } from "../auditLogs/auditLogs.service";
+import { eventBus } from "../event/eventBus";
 import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { httpsStatusCodes } from "./../../utils/https-status-codes";
@@ -89,6 +90,11 @@ const login = async (
 
   await session.commitTransaction();
   await session.endSession();
+
+  eventBus.emit("sendSms", {
+    timeStamp: new Date(),
+    message: "Log in success!",
+  });
 
   return {
     user: {
