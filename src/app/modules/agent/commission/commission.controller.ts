@@ -1,7 +1,7 @@
 import { catchAsync } from "../../../utils/catchAsync";
 import { httpsStatusCodes } from "../../../utils/https-status-codes";
 import { sendResponse } from "../../../utils/sendResponse";
-import { commissionService } from "./commIssion.service";
+import { commissionService } from "./commission.service";
 
 const getCommissions = catchAsync(async (req, res) => {
   const userId = req.user.userId;

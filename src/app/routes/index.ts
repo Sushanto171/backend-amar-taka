@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { AgentRoutes } from "../modules/agent/agent.routes";
+
 import { CommissionRoutes } from "../modules/agent/commission/commission.routes";
 import { AuditLogsRoutes } from "../modules/auditLogs/auditLogs.routes";
 import { AuthRoutes } from "../modules/auth/auth.routes";

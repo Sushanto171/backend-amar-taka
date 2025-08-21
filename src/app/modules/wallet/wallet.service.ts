@@ -6,6 +6,10 @@ import { AppError } from "../../errorHelpers/AppError";
 import { calculatePercent } from "../../utils/calculatePercent";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
+import {
+  IncType,
+  updateTransactionBalance,
+} from "../../utils/updateTransactionBalance";
 import { updateTransactionStatus } from "../../utils/updateTransactionStatus";
 import { validateTransactionBeforeProcess } from "../../utils/validateTransactionBeforeProcess";
 import {
@@ -80,28 +84,34 @@ const deposit = async (req: Request) => {
     );
 
     // update to user wallet
-    await Wallet.findByIdAndUpdate(
-      transaction.toWallet,
-      {
-        $inc: {
-          balance: transaction.amount - (calculation.deductFee as number),
-        },
-      },
-      { runValidators: true, session, new: true }
-    );
+    await updateTransactionBalance({
+      userid: transaction.toWallet as Types.ObjectId,
+      balance: transaction.amount - (calculation.deductFee as number),
+      session: session,
+      incType: IncType.increment,
+    });
 
-    // update from user wallet
-    await Wallet.findByIdAndUpdate(
-      transaction.fromWallet,
-      {
-        $inc: {
-          balance: -transaction.amount,
-          revenue: +(calculation.agentRevenue as number),
-        },
-      },
-      { session, runValidators: true, new: true }
-    );
+    // update from agent wallet
+    await updateTransactionBalance({
+      userid: transaction.fromWallet,
+      balance: transaction.amount,
+      session: session,
+      incType: IncType.decrement,
+      revenue: calculation.agentRevenue,
+    });
 
+    //  await Wallet.findByIdAndUpdate(
+    //   transaction.fromWallet,
+    //   {
+    //     $inc: {
+    //       balance: -transaction.amount,
+    //       revenue: +(calculation.agentRevenue as number),
+    //     },
+    //   },
+    //   { session, runValidators: true, new: true }
+    // );
+
+    //create agent commission
     eventBus.emit("commission", {
       fee: calculation.agentRevenue as number,
       user: req.user.userId,
@@ -195,27 +205,21 @@ const withdraw = async (req: Request) => {
     );
 
     // update user wallet
-    await Wallet.findByIdAndUpdate(
-      transaction.fromWallet,
-      {
-        $inc: {
-          balance: -(transaction.amount + (calculation.deductFee as number)),
-        },
-      },
-      { runValidators: true, session, new: true }
-    );
+    await updateTransactionBalance({
+      userid: transaction.fromWallet,
+      balance: transaction.amount + (calculation.deductFee as number),
+      session: session,
+      incType: IncType.decrement,
+    });
 
     // update agent wallet
-    await Wallet.findByIdAndUpdate(
-      transaction.toWallet,
-      {
-        $inc: {
-          balance: +transaction.amount,
-          revenue: +(calculation.agentRevenue as number),
-        },
-      },
-      { session, runValidators: true, new: true }
-    );
+    await updateTransactionBalance({
+      userid: transaction.toWallet as Types.ObjectId,
+      balance: transaction.amount,
+      incType: IncType.increment,
+      revenue: calculation.agentRevenue,
+      session: session,
+    });
 
     // create agent commission
     eventBus.emit("commission", {
@@ -310,26 +314,20 @@ const P2P = async (req: Request) => {
     );
 
     // update from user wallet
-    await Wallet.findByIdAndUpdate(
-      transaction.fromWallet,
-      {
-        $inc: {
-          balance: -(transaction.amount + (calculation.deductFee as number)),
-        },
-      },
-      { runValidators: true, session, new: true }
-    );
+    await updateTransactionBalance({
+      userid: transaction.fromWallet,
+      balance: transaction.amount + (calculation.deductFee as number),
+      incType: IncType.decrement,
+      session: session,
+    });
 
     // update to user wallet
-    await Wallet.findByIdAndUpdate(
-      transaction.toWallet,
-      {
-        $inc: {
-          balance: +transaction.amount,
-        },
-      },
-      { session, runValidators: true, new: true }
-    );
+    await updateTransactionBalance({
+      userid: transaction.toWallet as Types.ObjectId,
+      balance: transaction.amount,
+      incType: IncType.increment,
+      session: session,
+    });
 
     // increment system wallet revenue
     const system = await updateSystemWallet({

@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import { checkAuth } from "../../../middlewares/checkAuth";
 import { IRole } from "../../user/user.interface";
 import { commissionController } from "./commission.controller";
