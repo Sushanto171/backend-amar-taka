@@ -13,5 +13,10 @@ router.post(
   checkAuth([...Object.values(IRole)]),
   authController.changePassword
 );
+router.post(
+  "/change-password-otp-verify",
+  checkAuth([...Object.values(IRole)]),
+  authController.verifyChangePasswordOtp
+);
 
 export const AuthRoutes = router;

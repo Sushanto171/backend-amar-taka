@@ -11,11 +11,10 @@ export const checkAuth =
   (authRoles: string[]) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const token = req.cookies.accessToken;
+      const token = req.cookies?.accessToken;
       if (!token) {
         throw new AppError(httpsStatusCodes.NOT_FOUND, "Missing user token");
       }
-
       const verifiedToken = verifyToken(
         token,
         envVars.JWT.JWT_ACCESS_SECRET

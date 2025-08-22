@@ -181,8 +181,49 @@ const changePassword = async (
   return { OTP };
 };
 
+const verifyChangePSotp = async (req: Request) => {
+  const userId = req.user.userId;
+  const otp = req.body.otp;
+  const isUserExist = await User.findById(userId).select("+password");
+  if (!isUserExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not exist.");
+  }
+  const redisOTPKey = `otp:${isUserExist.phone}`;
+  const redisPwcdKey = `pwcd:${isUserExist.phone}`;
+  const redisOTPPromise = redisClient.get(redisOTPKey);
+  const redisPwddPromise = redisClient.get(redisPwcdKey);
+  const [redisOTP, redisHashedPassword] = await Promise.all([
+    redisOTPPromise,
+    redisPwddPromise,
+  ]);
+  if (!redisOTP || !redisHashedPassword) {
+    throw new AppError(httpsStatusCodes.NOT_ACCEPTABLE, "OTP is expired.");
+  }
+
+  if (redisOTP !== otp) {
+    throw new AppError(httpsStatusCodes.BAD_REQUEST, "OTP is invalid.");
+  }
+
+  isUserExist.password = redisHashedPassword;
+  await isUserExist.save();
+  await redisClient.del(redisOTPKey);
+  await redisClient.del(redisPwcdKey);
+  const token = createUserTokens(isUserExist);
+
+  await auditLogsService.createAuditLog({
+    req,
+    payload: {
+      action: IAuditActionType.PASSWORD_CHANGE,
+      actor: isUserExist._id,
+      status: IAuditStatus.SUCCESS,
+    },
+  });
+  return token;
+};
+
 export const authService = {
   login,
   getNewAccessToken,
   changePassword,
+  verifyChangePSotp,
 };

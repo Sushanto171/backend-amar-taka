@@ -55,11 +55,23 @@ const changePassword = catchAsync(async (req, res) => {
     oldPassword,
     newPassword
   );
+  // res.redirect("http://localhost:5000/change-password/verify-otp")
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
-    message: "User logout successfully!",
+    message: "Send change password OTP successfully!",
     data: changePasswordOTP,
+  });
+});
+
+const verifyChangePasswordOtp = catchAsync(async (req, res) => {
+  const userToken = await authService.verifyChangePSotp(req);
+  setAuthCookie(res, userToken);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.OK,
+    message: "Password changed successfully!",
+    data: null,
   });
 });
 
@@ -68,4 +80,5 @@ export const authController = {
   getNewAccessToken,
   logout,
   changePassword,
+  verifyChangePasswordOtp,
 };
