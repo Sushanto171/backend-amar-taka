@@ -75,10 +75,33 @@ const verifyChangePasswordOtp = catchAsync(async (req, res) => {
   });
 });
 
+const forgetPassword = catchAsync(async (req, res) => {
+  const changePasswordOTP = await authService.forgetPassword(req.body.phone);
+  // res.redirect("http://localhost:5000/forget-password/verify-otp")
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.OK,
+    message: "Send OTP successfully!",
+    data: changePasswordOTP,
+  });
+});
+
+const resetPassword = catchAsync(async (req, res) => {
+  await authService.resetPassword(req);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.OK,
+    message: "Password reset successfully!",
+    data: null,
+  });
+});
+
 export const authController = {
   login,
   getNewAccessToken,
   logout,
   changePassword,
   verifyChangePasswordOtp,
+  forgetPassword,
+  resetPassword,
 };

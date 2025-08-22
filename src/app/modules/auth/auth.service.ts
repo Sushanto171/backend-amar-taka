@@ -221,9 +221,67 @@ const verifyChangePSotp = async (req: Request) => {
   return token;
 };
 
+const forgetPassword = async (phone: string) => {
+  const isUserExist = await User.findOne({ phone });
+  if (!isUserExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found");
+  }
+  const otp = Math.floor(Math.random() * 10 ** 6).toString();
+  const redisKey = `otp:forget${isUserExist.phone}`;
+  await redisClient.set(redisKey, otp, {
+    expiration: { type: "EX", value: 120 },
+  });
+  eventBus.emit("sendSms", {
+    userNumber: isUserExist.phone,
+    timeStamp: new Date(),
+    otpCode: otp,
+    message: "Your OTP is:",
+  });
+  return {otp};
+};
+
+const resetPassword = async (req: Request) => {
+  const { otp, phone, password } = req.body;
+  const isUserExist = await User.findOne({ phone }).select("+password");
+  if (!isUserExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not exist.");
+  }
+  const redisOTPKey = `otp:forget${isUserExist.phone}`;
+
+  const redisOTP = await redisClient.get(redisOTPKey);
+  
+  if (!redisOTP) {
+    throw new AppError(httpsStatusCodes.NOT_ACCEPTABLE, "OTP is expired.");
+  }
+
+  if (redisOTP !== otp) {
+    throw new AppError(httpsStatusCodes.BAD_REQUEST, "OTP is invalid.");
+  }
+  const hashedPassword = await hashPassword(
+    password,
+    envVars.BCRYPT_SALT_ROUND
+  );
+
+  isUserExist.password = hashedPassword;
+  await isUserExist.save();
+  await redisClient.del(redisOTPKey);
+
+  await auditLogsService.createAuditLog({
+    req,
+    payload: {
+      action: IAuditActionType.PASSWORD_CHANGE,
+      actor: isUserExist._id,
+      status: IAuditStatus.SUCCESS,
+    },
+  });
+  return null;
+};
+
 export const authService = {
   login,
   getNewAccessToken,
   changePassword,
   verifyChangePSotp,
+  forgetPassword,
+  resetPassword,
 };
