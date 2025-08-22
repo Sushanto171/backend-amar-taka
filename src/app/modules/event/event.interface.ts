@@ -6,7 +6,7 @@ export interface ISendSms {
   agentNumber?: string;
   userNumber?: string;
   transactionId?: string;
-  otpCode?: number;
+  otpCode?: string;
   reference?: string;
   message?: string;
   fee?: number;

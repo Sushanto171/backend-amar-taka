@@ -1,4 +1,4 @@
-import { sendMessage } from "../../../config/twIlio.config";
+import { sendMessage } from "../../../config/twilio.config";
 import { eventBus } from "../eventBus";
 
 eventBus.on("sendSms", async (payload) => {

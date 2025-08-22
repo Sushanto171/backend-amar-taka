@@ -1,8 +1,12 @@
 import { Request } from "express";
+import { JwtPayload } from "jsonwebtoken";
 import { startSession } from "mongoose";
+import { envVars } from "../../config/env.config";
+import { redisClient } from "../../config/redis.config";
 import { AppError } from "../../errorHelpers/AppError";
-import { comparePassword } from "../../utils/bcryptjs";
-import { createUserTokens } from "../../utils/jwt";
+import { comparePassword, hashPassword } from "../../utils/bcryptjs";
+import { checkUserWithWallet } from "../../utils/checkUserWithWallet";
+import { createUserTokens, generateToken, verifyToken } from "../../utils/jwt";
 import { temporarilyLockAccount } from "../../utils/temporarilyLockAccount";
 import {
   IAuditActionType,
@@ -107,6 +111,119 @@ const login = async (
   };
 };
 
+const getNewAccessToken = async (refreshToken: string) => {
+  const decoded = verifyToken(
+    refreshToken,
+    envVars.JWT.JWT_REFRESH_SECRET
+  ) as JwtPayload;
+  const isUserExist = await User.findById(decoded.userId);
+  if (!isUserExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found!");
+  }
+  checkUserWithWallet(isUserExist);
+  const jwtPayload = {
+    role: isUserExist.role,
+    userId: isUserExist._id,
+    phone: isUserExist.phone,
+    email: isUserExist.email,
+  };
+  const accessToken = generateToken(
+    jwtPayload,
+    envVars.JWT.JWT_ACCESS_SECRET,
+    envVars.JWT.JWT_ACCESS_EXPIRATION
+  );
+  return { accessToken, refreshToken };
+};
+
+const changePassword = async (
+  userId: string,
+  oldPassword: string,
+  newPassword: string
+) => {
+  const isUserExist = await User.findById(userId).select("+password");
+  if (!isUserExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found");
+  }
+  checkUserWithWallet(isUserExist); //check user
+
+  const matchedPassword = await comparePassword(
+    isUserExist.password,
+    oldPassword
+  );
+  if (!matchedPassword) {
+    throw new AppError(
+      httpsStatusCodes.BAD_REQUEST,
+      "Password does not matched."
+    );
+  }
+
+  const newHashedPassword = await hashPassword(
+    newPassword,
+    envVars.BCRYPT_SALT_ROUND
+  );
+  const randomOTP = Math.floor(Math.random() * 10 ** 6).toString();
+  const redisOTPKey = `otp:${isUserExist.phone}`;
+  const redisPwcdKey = `pwcd:${isUserExist.phone}`;
+  await redisClient.set(redisOTPKey, randomOTP, {
+    expiration: { type: "EX", value: 120 },
+  });
+  await redisClient.set(redisPwcdKey, newHashedPassword, {
+    expiration: { type: "EX", value: 300 },
+  });
+
+  const OTP = await redisClient.get(redisOTPKey);
+  eventBus.emit("sendSms", {
+    userNumber: isUserExist.phone,
+    timeStamp: new Date(),
+    otpCode: randomOTP,
+    message: "Your change password OTP is:",
+  });
+  return { OTP };
+};
+
+const verifyChangePSotp = async (req: Request) => {
+  const userId = req.user.userId;
+  const otp = req.body.otp;
+  const isUserExist = await User.findById(userId).select("+password");
+  if (!isUserExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not exist.");
+  }
+  const redisOTPKey = `otp:${isUserExist.phone}`;
+  const redisPwcdKey = `pwcd:${isUserExist.phone}`;
+  const redisOTPPromise = redisClient.get(redisOTPKey);
+  const redisPwddPromise = redisClient.get(redisPwcdKey);
+  const [redisOTP, redisHashedPassword] = await Promise.all([
+    redisOTPPromise,
+    redisPwddPromise,
+  ]);
+  if (!redisOTP || !redisHashedPassword) {
+    throw new AppError(httpsStatusCodes.NOT_ACCEPTABLE, "OTP is expired.");
+  }
+
+  if (redisOTP !== otp) {
+    throw new AppError(httpsStatusCodes.BAD_REQUEST, "OTP is invalid.");
+  }
+
+  isUserExist.password = redisHashedPassword;
+  await isUserExist.save();
+  await redisClient.del(redisOTPKey);
+  await redisClient.del(redisPwcdKey);
+  const token = createUserTokens(isUserExist);
+
+  await auditLogsService.createAuditLog({
+    req,
+    payload: {
+      action: IAuditActionType.PASSWORD_CHANGE,
+      actor: isUserExist._id,
+      status: IAuditStatus.SUCCESS,
+    },
+  });
+  return token;
+};
+
 export const authService = {
   login,
+  getNewAccessToken,
+  changePassword,
+  verifyChangePSotp,
 };

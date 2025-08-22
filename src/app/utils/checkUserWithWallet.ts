@@ -5,7 +5,7 @@ import { httpsStatusCodes } from "./https-status-codes";
 
 export const checkUserWithWallet = (
   user: Partial<IUser>,
-  wallet: Partial<IWallet>
+  wallet?: Partial<IWallet>
 ) => {
   if (user.isDeleted || user.isSuspended) {
     throw new AppError(
@@ -16,7 +16,7 @@ export const checkUserWithWallet = (
     );
   }
 
-  if (wallet.isBlock) {
+  if (wallet && wallet.isBlock) {
     throw new AppError(
       httpsStatusCodes.NOT_ACCEPTABLE,
       "Action failed: The wallet is currently blocked. Please contact support for assistance."

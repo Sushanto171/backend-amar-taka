@@ -3,6 +3,7 @@ import { Server } from "http";
 import mongoose from "mongoose";
 import { app } from "./app";
 import { envVars } from "./app/config/env.config";
+import { connectRedis } from "./app/config/redis.config";
 import { seedAdmin } from "./app/utils/seedAdmin";
 let server: Server;
 
@@ -45,6 +46,7 @@ process.on("unhandledRejection", () => {
 });
 
 (async () => {
+  await connectRedis();
   await startServer();
   await seedAdmin();
 })();
