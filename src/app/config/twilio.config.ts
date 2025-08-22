@@ -13,11 +13,11 @@ export const sendMessage = async (phone: string, body: string) => {
       from: envVars.TWILIO.TWILIO_PHONE_NUMBER,
       body,
     },
-    (error, item) => {
+    (error) => {
       if (error) {
         console.log("Send message error:", error);
       }
-      console.log({ item });
+      // console.log({ item });
     }
   );
 };

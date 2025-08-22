@@ -53,6 +53,11 @@ interface IRequiredVars {
     AUTH_TOKEN: string;
     TWILIO_PHONE_NUMBER: string;
   };
+  REDIS: {
+    REDIS_PASSWORD: string;
+    REDIS_HOST: string;
+    REDIS_PORT: number;
+  };
 }
 
 const requiredVars = [
@@ -88,6 +93,9 @@ const requiredVars = [
   "ACCOUNT_SID",
   "AUTH_TOKEN",
   "TWILIO_PHONE_NUMBER",
+  "REDIS_PASSWORD",
+  "REDIS_HOST",
+  "REDIS_PORT",
 ];
 
 const loadEnvVariables = (): IRequiredVars => {
@@ -159,6 +167,11 @@ const loadEnvVariables = (): IRequiredVars => {
       ACCOUNT_SID: process.env.ACCOUNT_SID as string,
       AUTH_TOKEN: process.env.AUTH_TOKEN as string,
       TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER as string,
+    },
+    REDIS: {
+      REDIS_PASSWORD: process.env.REDIS_PASSWORD as string,
+      REDIS_HOST: process.env.REDIS_HOST as string,
+      REDIS_PORT: Number(process.env.REDIS_PORT),
     },
   };
 };

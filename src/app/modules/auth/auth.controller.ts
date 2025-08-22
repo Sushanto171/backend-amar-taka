@@ -47,8 +47,25 @@ const logout = catchAsync(async (req, res) => {
   });
 });
 
+const changePassword = catchAsync(async (req, res) => {
+  const userId = req.user.userId;
+  const { oldPassword, newPassword } = req.body;
+  const changePasswordOTP = await authService.changePassword(
+    userId,
+    oldPassword,
+    newPassword
+  );
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.OK,
+    message: "User logout successfully!",
+    data: changePasswordOTP,
+  });
+});
+
 export const authController = {
   login,
   getNewAccessToken,
   logout,
+  changePassword,
 };

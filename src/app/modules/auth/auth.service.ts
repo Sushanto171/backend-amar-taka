@@ -2,8 +2,9 @@ import { Request } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import { startSession } from "mongoose";
 import { envVars } from "../../config/env.config";
+import { redisClient } from "../../config/redis.config";
 import { AppError } from "../../errorHelpers/AppError";
-import { comparePassword } from "../../utils/bcryptjs";
+import { comparePassword, hashPassword } from "../../utils/bcryptjs";
 import { checkUserWithWallet } from "../../utils/checkUserWithWallet";
 import { createUserTokens, generateToken, verifyToken } from "../../utils/jwt";
 import { temporarilyLockAccount } from "../../utils/temporarilyLockAccount";
@@ -134,7 +135,54 @@ const getNewAccessToken = async (refreshToken: string) => {
   return { accessToken, refreshToken };
 };
 
+const changePassword = async (
+  userId: string,
+  oldPassword: string,
+  newPassword: string
+) => {
+  const isUserExist = await User.findById(userId).select("+password");
+  if (!isUserExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found");
+  }
+  checkUserWithWallet(isUserExist); //check user
+
+  const matchedPassword = await comparePassword(
+    isUserExist.password,
+    oldPassword
+  );
+  if (!matchedPassword) {
+    throw new AppError(
+      httpsStatusCodes.BAD_REQUEST,
+      "Password does not matched."
+    );
+  }
+
+  const newHashedPassword = await hashPassword(
+    newPassword,
+    envVars.BCRYPT_SALT_ROUND
+  );
+  const randomOTP = Math.floor(Math.random() * 10 ** 6).toString();
+  const redisOTPKey = `otp:${isUserExist.phone}`;
+  const redisPwcdKey = `pwcd:${isUserExist.phone}`;
+  await redisClient.set(redisOTPKey, randomOTP, {
+    expiration: { type: "EX", value: 120 },
+  });
+  await redisClient.set(redisPwcdKey, newHashedPassword, {
+    expiration: { type: "EX", value: 300 },
+  });
+
+  const OTP = await redisClient.get(redisOTPKey);
+  eventBus.emit("sendSms", {
+    userNumber: isUserExist.phone,
+    timeStamp: new Date(),
+    otpCode: randomOTP,
+    message: "Your change password OTP is:",
+  });
+  return { OTP };
+};
+
 export const authService = {
   login,
   getNewAccessToken,
+  changePassword,
 };
