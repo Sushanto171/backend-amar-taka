@@ -101,9 +101,9 @@ const verifyOTP = async (phone: string, otp: string) => {
   }
   const redisKey = `otp:createUser-${isUserExist.phone}`;
   const redisOtp = await redisClient.get(redisKey);
-  // if (!redisOtp) {
-  //   throw new AppError(httpsStatusCodes.BAD_REQUEST, "OTP is expired");
-  // }
+  if (!redisOtp) {
+    throw new AppError(httpsStatusCodes.BAD_REQUEST, "OTP is expired");
+  }
   if (redisOtp !== otp) {
     if (otp === "123456") {
       // development purpose
