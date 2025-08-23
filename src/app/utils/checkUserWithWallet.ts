@@ -7,11 +7,13 @@ export const checkUserWithWallet = (
   user: Partial<IUser>,
   wallet?: Partial<IWallet>
 ) => {
-  if (user.isDeleted || user.isSuspended) {
+  if (user.isDeleted || user.isSuspended ) {
     throw new AppError(
       httpsStatusCodes.NOT_ACCEPTABLE,
       `Acton Failed: user is ${
-        (user.isDeleted && "Deleted") || (user.isSuspended && "Suspended")
+        (user.isDeleted && "Deleted") ||
+        (user.isSuspended && "Suspended") 
+        // (!user.isVerified && "unVerified")
       }`
     );
   }

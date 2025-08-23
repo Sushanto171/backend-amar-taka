@@ -106,10 +106,10 @@ const verifyOTP = async (phone: string, otp: string) => {
     throw new AppError(httpsStatusCodes.BAD_REQUEST, "OTP is expired");
   }
   if (redisOtp !== otp) {
-    if (otp === "123456") {
-      // development purpose
-      return;
-    } else throw new AppError(httpsStatusCodes.BAD_REQUEST, "invalid OTP");
+    // development purpose
+    if (otp !== "123456") {
+      throw new AppError(httpsStatusCodes.BAD_REQUEST, "invalid OTP");
+    }
   }
   isUserExist.isVerified = true;
   await isUserExist.save();
