@@ -39,6 +39,17 @@ const createAuditLog = async (logInfo: ICreateAudit) => {
   return log;
 };
 
+const getLogs = async () => {
+  const logs = await AuditLogs.find();
+  return logs;
+};
+const getSingleLogs = async (logId: string) => {
+  const log = await AuditLogs.findById(logId);
+  return log;
+};
+
 export const auditLogsService = {
   createAuditLog,
+  getLogs,
+  getSingleLogs,
 };
