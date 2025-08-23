@@ -95,7 +95,7 @@ const createTransaction = async (
     });
     await session.abortTransaction();
     await session.endSession();
-    throw new AppError(httpsStatusCodes.INTERNAL_SERVER_ERROR, error.message);
+    throw error;
   }
 };
 

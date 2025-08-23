@@ -4,7 +4,7 @@ export interface TErrorSource {
 }
 
 export interface TGenericErrorTypes {
-  status:  number;
+  status: number;
   message: string;
-  errorSource: TErrorSource[];
+  errorSource?: TErrorSource[];
 }
