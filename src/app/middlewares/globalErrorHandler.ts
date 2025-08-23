@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextFunction, Request, Response } from "express";
+import { ZodError } from "zod";
 import { envVars } from "../config/env.config";
 import { AppError } from "../errorHelpers/AppError";
-import { sendResponse } from "../utils/sendResponse";
+import { handleZodError } from "../helpers/handleZodError";
+import { TErrorSource } from "../interfaces/ErrorTypes";
 
 export const globalErrorHandler = (
   error: AppError | Error,
@@ -11,21 +13,29 @@ export const globalErrorHandler = (
   next: NextFunction
 ) => {
   if (envVars.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console
-    console.log("GlobalErrorHandler:", error);
+    // console.log("GlobalErrorHandler:", error);
   }
   let status = 500;
-  const message = error.message || "Something went wrong!";
+  let message = error.message || "Something went wrong!";
+  let errorSource: TErrorSource[] = [];
 
   if (error instanceof AppError) {
     status = error.statusCode;
   }
+  
+  if (error instanceof ZodError) {
+    const formatted = handleZodError(error);
+    message = formatted.message;
+    errorSource = formatted.errorSource;
+    status = formatted.status;
+  }
 
-  sendResponse(res, {
+  res.status(status).json({
     statusCode: status,
     success: false,
     message,
-    data: null,
+    errorSource,
+    error: envVars.NODE_ENV === "development" ? error : null,
     stack: envVars.NODE_ENV === "development" ? error.stack : null,
   });
 };

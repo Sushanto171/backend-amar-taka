@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { checkAuth } from "../../middlewares/checkAuth";
+import { validateRequest } from "../../middlewares/validateZodSchema";
 import { IRole } from "../user/user.interface";
 import { authController } from "./auth.controller";
+import { resetPasswordZodSchema } from "./auth.validator";
 
 const router = Router();
 
@@ -20,6 +22,10 @@ router.post(
 );
 
 router.post("/forget-password", authController.forgetPassword);
-router.post("/reset-password", authController.resetPassword);
+router.post(
+  "/reset-password",
+  validateRequest(resetPasswordZodSchema),
+  authController.resetPassword
+);
 
 export const AuthRoutes = router;

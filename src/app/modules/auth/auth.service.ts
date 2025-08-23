@@ -176,7 +176,7 @@ const changePassword = async (
     userNumber: isUserExist.phone,
     timeStamp: new Date(),
     otpCode: randomOTP,
-    message: "Your change password OTP is:",
+    message: `Your change password OTP is:${randomOTP}`,
   });
   return { OTP };
 };
@@ -235,9 +235,9 @@ const forgetPassword = async (phone: string) => {
     userNumber: isUserExist.phone,
     timeStamp: new Date(),
     otpCode: otp,
-    message: "Your OTP is:",
+    message: `Your OTP is:${otp}`,
   });
-  return {otp};
+  return { otp };
 };
 
 const resetPassword = async (req: Request) => {
@@ -249,7 +249,7 @@ const resetPassword = async (req: Request) => {
   const redisOTPKey = `otp:forget${isUserExist.phone}`;
 
   const redisOTP = await redisClient.get(redisOTPKey);
-  
+
   if (!redisOTP) {
     throw new AppError(httpsStatusCodes.NOT_ACCEPTABLE, "OTP is expired.");
   }
