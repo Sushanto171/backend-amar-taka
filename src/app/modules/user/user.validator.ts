@@ -66,18 +66,19 @@ export const CreateUserZodSchema = z.object({
 });
 
 export const updateUserZodSchema = z.object({
-
   name: z
     .string({
       error: "Invalid name format",
     })
-    .min(1, { message: "Name cannot be empty" }).optional(),
+    .min(1, { message: "Name cannot be empty" })
+    .optional(),
 
   phone: z
     .string({
       error: "Phone number is required",
     })
-    .regex(bdPhoneRegex, { message: "Invalid Bangladesh phone number format" }).optional(),
+    .regex(bdPhoneRegex, { message: "Invalid Bangladesh phone number format" })
+    .optional(),
 
   email: z.string().email({ message: "Invalid email format" }).optional(),
 
@@ -107,4 +108,15 @@ export const updateUserZodSchema = z.object({
       z.date()
     )
     .optional(),
+});
+
+export const verifyOTPZodSchema = z.object({
+  otp: z
+    .string({ error: "OTP must be required" })
+    .min(6, { error: "OTP length must be 6 numbers" }),
+  phone: z
+    .string({
+      error: "Phone number is required",
+    })
+    .regex(bdPhoneRegex, { message: "Invalid Bangladesh phone number format" }),
 });

@@ -6,6 +6,7 @@ import { redisClient } from "../../config/redis.config";
 import { AppError } from "../../errorHelpers/AppError";
 import { comparePassword, hashPassword } from "../../utils/bcryptjs";
 import { checkUserWithWallet } from "../../utils/checkUserWithWallet";
+import { generateOTP } from "../../utils/generateOTP";
 import { createUserTokens, generateToken, verifyToken } from "../../utils/jwt";
 import { temporarilyLockAccount } from "../../utils/temporarilyLockAccount";
 import {
@@ -161,7 +162,7 @@ const changePassword = async (
     newPassword,
     envVars.BCRYPT_SALT_ROUND
   );
-  const randomOTP = Math.floor(Math.random() * 10 ** 6).toString();
+  const randomOTP = generateOTP(6);
   const redisOTPKey = `otp:${isUserExist.phone}`;
   const redisPwcdKey = `pwcd:${isUserExist.phone}`;
   await redisClient.set(redisOTPKey, randomOTP, {
@@ -226,7 +227,7 @@ const forgetPassword = async (phone: string) => {
   if (!isUserExist) {
     throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found");
   }
-  const otp = Math.floor(Math.random() * 10 ** 6).toString();
+  const otp = generateOTP(6);
   const redisKey = `otp:forget${isUserExist.phone}`;
   await redisClient.set(redisKey, otp, {
     expiration: { type: "EX", value: 120 },

@@ -4,10 +4,13 @@ import { AppError } from "../../errorHelpers/AppError";
 import { hashPassword } from "../../utils/bcryptjs";
 
 import { Request } from "express";
+import { redisClient } from "../../config/redis.config";
+import { generateOTP } from "../../utils/generateOTP";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
 import { IAuditActionType } from "../auditLogs/auditLogs.interface";
 import { auditLogsService } from "../auditLogs/auditLogs.service";
+import { eventBus } from "../event/eventBus";
 import {
   ITransaction,
   ITransactionStatus,
@@ -70,15 +73,46 @@ const createUser = async (req: Request) => {
     };
 
     await transactionService.createTransaction(req, transactionPayload);
-
+    const otp = generateOTP(6);
     await session.commitTransaction();
-    return user;
+    const redisKey = `otp:createUser-${user.phone}`;
+    await redisClient.set(redisKey, otp, {
+      expiration: { type: "EX", value: 120 },
+    });
+    eventBus.emit("sendSms", {
+      timeStamp: new Date(),
+      otpCode: otp,
+      message: `Your OTP is: ${otp}`,
+      userNumber: user.phone,
+    });
+    return { user, otp };
   } catch (error) {
     await session.abortTransaction();
     throw error;
   } finally {
     await session.endSession();
   }
+};
+
+const verifyOTP = async (phone: string, otp: string) => {
+  const isUserExist = await User.findOne({ phone });
+  if (!isUserExist) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found");
+  }
+  const redisKey = `otp:createUser-${isUserExist.phone}`;
+  const redisOtp = await redisClient.get(redisKey);
+  // if (!redisOtp) {
+  //   throw new AppError(httpsStatusCodes.BAD_REQUEST, "OTP is expired");
+  // }
+  if (redisOtp !== otp) {
+    if (otp === "123456") {
+      // development purpose
+      return;
+    } else throw new AppError(httpsStatusCodes.BAD_REQUEST, "invalid OTP");
+  }
+  isUserExist.isVerified = true;
+  await isUserExist.save();
+  return null;
 };
 
 const getAllUsers = async () => {
@@ -120,6 +154,7 @@ const updateUser = async (userId: string, payload: Partial<IUser>) => {
 
 export const userService = {
   createUser,
+  verifyOTP,
   getAllUsers,
   getSingleUser,
   getMe,
