@@ -51,12 +51,15 @@ const updateAgent = catchAsync(async (req, res) => {
 });
 
 const allAgents = catchAsync(async (req, res) => {
-  const agents = await agentService.allAgents();
+  const info = await agentService.allAgents(
+    req.query as Record<string, string>
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
     message: "All agents retrieved successfully.",
-    data: agents,
+    data: info.agents,
+    meta: info.meta,
   });
 });
 

@@ -7,6 +7,7 @@ import { Request } from "express";
 import { redisClient } from "../../config/redis.config";
 import { generateOTP } from "../../utils/generateOTP";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
 import { IAuditActionType } from "../auditLogs/auditLogs.interface";
 import { auditLogsService } from "../auditLogs/auditLogs.service";
@@ -115,9 +116,16 @@ const verifyOTP = async (phone: string, otp: string) => {
   return null;
 };
 
-const getAllUsers = async () => {
-  const users = await User.find();
-  return { users };
+const getAllUsers = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(User.find(), query);
+  const user = queryBuilder
+    .filter()
+    .search(["name", "phone", "address", "role"])
+    .sort()
+    .fields()
+    .paginate();
+  const [users, metaData] = await Promise.all([user.build(), user.getMeta()]);
+  return { users, metaData };
 };
 
 const getSingleUser = async (userId: string) => {

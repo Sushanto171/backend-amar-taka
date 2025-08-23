@@ -15,12 +15,15 @@ const myWallet = catchAsync(async (req, res) => {
 });
 
 const getAllWallets = catchAsync(async (req, res) => {
-  const wallets = await walletService.getAllWallets();
+  const info = await walletService.getAllWallets(
+    req.query as Record<string, string>
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
     message: "All wallets retrieved successfully!",
-    data: wallets,
+    data: info.wallets,
+    meta: info.meta,
   });
 });
 

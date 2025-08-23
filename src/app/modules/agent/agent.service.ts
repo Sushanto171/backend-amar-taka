@@ -4,6 +4,7 @@ import mongoose, { startSession, Types } from "mongoose";
 import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
 import { IAuditActionType } from "../auditLogs/auditLogs.interface";
 import { auditLogsService } from "../auditLogs/auditLogs.service";
@@ -101,7 +102,7 @@ const verifyAgent = async (req: Request) => {
       agent = await Agent.findByIdAndUpdate(
         agentId,
         { kycStatus: payload.kycStatus },
-        { session, new : true, runValidators: true }
+        { session, new: true, runValidators: true }
       );
       await User.findByIdAndUpdate(
         isRegistrationExist.user,
@@ -211,9 +212,11 @@ const updateAgent = async (
   return agent;
 };
 
-const allAgents = async () => {
-  const agents = await Agent.find();
-  return agents;
+const allAgents = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(Agent.find(), query);
+  const agent = queryBuilder.filter().fields().sort().paginate();
+  const [agents, meta] = await Promise.all([agent.build(), agent.getMeta()]);
+  return { agents, meta };
 };
 
 export const agentService = {

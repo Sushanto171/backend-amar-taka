@@ -4,12 +4,15 @@ import { sendResponse } from "../../utils/sendResponse";
 import { commissionService } from "./commIssion.service";
 
 const getAllCommissions = catchAsync(async (req, res) => {
-  const commissions = await commissionService.getAllCommissions();
+  const info = await commissionService.getAllCommissions(
+    req.query as Record<string, string>
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
     message: "Retrieved all commissions successfully.",
-    data: commissions,
+    data: info.commissions,
+    meta: info.meta,
   });
 });
 

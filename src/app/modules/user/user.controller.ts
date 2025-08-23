@@ -26,12 +26,15 @@ const verifyOTP = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
-  const users = await userService.getAllUsers();
+  const info = await userService.getAllUsers(
+    req.query as Record<string, string>
+  );
   sendResponse(res, {
-    statusCode: httpsStatusCodes.CREATED,
+    statusCode: httpsStatusCodes.OK,
     success: true,
     message: "User retrieved successfully!",
-    data: users,
+    data: info.users,
+    meta: info.metaData,
   });
 });
 

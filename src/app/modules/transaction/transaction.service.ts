@@ -8,6 +8,7 @@ import {
   checkTransactionTypeWithRole,
 } from "../../utils/checkTransactionTypeWithRole";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IAuditActionType } from "../auditLogs/auditLogs.interface";
 import { auditLogsService } from "../auditLogs/auditLogs.service";
 import { User } from "../user/user.model";
@@ -99,27 +100,48 @@ const createTransaction = async (
   }
 };
 
-const getAllTransactions = async () => {
-  const trans = await Transaction.find();
-  return trans;
+const getAllTransactions = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(Transaction.find(), query);
+  const transaction = queryBuilder
+    .filter()
+    .search(["phone", "reference"])
+    .fields()
+    .sort()
+    .paginate();
+  const [trans, meta] = await Promise.all([
+    transaction.build(),
+    transaction.getMeta(),
+  ]);
+
+  return { trans, meta };
 };
 
-const getTransactionByUserId = async (userId: string) => {
-  const isUserExist = await User.findById(userId);
-  if (!isUserExist) {
-    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not exist");
+const getTransactionByUserId = async (
+  userId: string,
+  query: Record<string, string>
+) => {
+  const user = await User.findById(userId).select("wallet");
+  if (!user) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found");
   }
-  const transactions = await Transaction.find({
-    $or: [
-      {
-        toWallet: isUserExist.wallet,
-      },
-      {
-        fromWallet: isUserExist.wallet,
-      },
-    ],
-  });
-  return transactions;
+  const queryBuilder = new QueryBuilder(
+    Transaction.find({
+      $or: [{ toWallet: user.wallet }, { fromWallet: user.wallet }],
+    }),
+    query
+  );
+  const transaction = queryBuilder
+    .filter()
+    .search(["phone", "reference"])
+    .fields()
+    .sort()
+    .paginate();
+
+  const [trans, meta] = await Promise.all([
+    transaction.build(),
+    transaction.getMeta(true),
+  ]);
+  return { trans, meta };
 };
 
 const getSingleTransaction = async (transId: string) => {

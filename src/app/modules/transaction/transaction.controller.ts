@@ -20,23 +20,30 @@ const createTransaction = catchAsync(async (req, res) => {
 });
 
 const getAllTransactions = catchAsync(async (req, res) => {
-  const transactions = await transactionService.getAllTransactions();
+  const info = await transactionService.getAllTransactions(
+    req.query as Record<string, string>
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
     message: "All Transaction Retrieved Successfully.",
-    data: transactions,
+    data: info.trans,
+    meta: info.meta,
   });
 });
 
 const getTransactionByUserId = catchAsync(async (req, res) => {
   const userId = req.user.userId;
-  const transactions = await transactionService.getTransactionByUserId(userId);
+  const info = await transactionService.getTransactionByUserId(
+    userId,
+    req.query as Record<string, string>
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
     message: "All Transaction Retrieved Successfully.",
-    data: transactions,
+    data: info.trans,
+    meta: info.meta,
   });
 });
 

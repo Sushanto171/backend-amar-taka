@@ -4,12 +4,15 @@ import { sendResponse } from "../../utils/sendResponse";
 import { auditLogsService } from "./auditLogs.service";
 
 const getLogs = catchAsync(async (req, res) => {
-  const logs = await auditLogsService.getLogs();
+  const info = await auditLogsService.getLogs(
+    req.query as Record<string, string>
+  );
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
     message: "Retrieved all logs data",
-    data: logs,
+    data: info.logs,
+    meta: info.meta,
   });
 });
 

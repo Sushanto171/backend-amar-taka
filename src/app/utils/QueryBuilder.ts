@@ -28,7 +28,7 @@ export class QueryBuilder<T> {
     return this;
   }
   fields(): this {
-    const fields = this.query?.field.split(",").join(" ") || "";
+    const fields = this.query?.field?.split(",").join(" ") || "";
     if (fields) {
       this.modelQuery = this.modelQuery.find().select(fields);
     }
@@ -50,14 +50,19 @@ export class QueryBuilder<T> {
     return this.modelQuery;
   }
 
-  async getMeta() {
-    const totalDocuments = await this.modelQuery.clone().countDocuments();
+  async getMeta(condition = false) {
+    const queryConditions = this.modelQuery.getFilter();
+
+    const totalDocuments = await this.modelQuery.model.countDocuments(
+      condition ? queryConditions : {}
+    );
     const page = Number(this.query?.page) || 1;
     const limit = Number(this.query?.limit) || 10;
     const totalPages = Math.ceil(totalDocuments / limit);
     return {
       page,
       limit,
+      total: totalDocuments,
       totalPages,
     };
   }

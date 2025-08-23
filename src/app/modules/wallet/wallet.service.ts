@@ -5,6 +5,7 @@ import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
 import { calculatePercent } from "../../utils/calculatePercent";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
 import {
   IncType,
@@ -50,9 +51,14 @@ const myWallet = async (userId: string) => {
 };
 
 // admin route
-const getAllWallets = async () => {
-  const wallets = await Wallet.find();
-  return wallets;
+const getAllWallets = async (query: Record<string, string>) => {
+  const wallet = new QueryBuilder(Wallet.find(), query)
+    .filter()
+    .fields()
+    .sort()
+    .paginate();
+  const [wallets, meta] = await Promise.all([wallet.build(), wallet.getMeta()]);
+  return { wallets, meta };
 };
 
 const deposit = async (req: Request) => {

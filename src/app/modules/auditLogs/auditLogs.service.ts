@@ -1,5 +1,6 @@
 import { Request } from "express";
 import { ClientSession } from "mongoose";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 import { getClientInfo } from "../../utils/userAgent";
 import { IAuditLogs } from "./auditLogs.interface";
 import { AuditLogs } from "./auditLogs.model";
@@ -39,9 +40,14 @@ const createAuditLog = async (logInfo: ICreateAudit) => {
   return log;
 };
 
-const getLogs = async () => {
-  const logs = await AuditLogs.find();
-  return logs;
+const getLogs = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(AuditLogs.find(), query);
+  const auditLog = queryBuilder.filter().fields().sort().paginate();
+  const [logs, meta] = await Promise.all([
+    auditLog.build(),
+    auditLog.getMeta(),
+  ]);
+  return { logs, meta };
 };
 const getSingleLogs = async (logId: string) => {
   const log = await AuditLogs.findById(logId);
