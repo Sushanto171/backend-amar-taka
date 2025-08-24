@@ -17,7 +17,7 @@ const checkTransactionTypeWithRole_1 = require("../../utils/checkTransactionType
 const https_status_codes_1 = require("../../utils/https-status-codes");
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
 const auditLogs_interface_1 = require("../auditLogs/auditLogs.interface");
-const auditLogs_service_1 = require("../auditLogs/auditLogs.service");
+const eventBus_1 = require("../event/eventBus");
 const user_model_1 = require("../user/user.model");
 const transaction_interface_1 = require("./transaction.interface");
 const transaction_model_1 = require("./transaction.model");
@@ -52,7 +52,8 @@ const createTransaction = (req, payload, c_session) => __awaiter(void 0, void 0,
             session,
         });
         transaction = transactionArray[0].toObject();
-        yield auditLogs_service_1.auditLogsService.createAuditLog({
+        eventBus_1.eventBus.emit("log", {
+            req,
             payload: {
                 action: (payload === null || payload === void 0 ? void 0 : payload.type) ||
                     auditLogs_interface_1.IAuditActionType.CASH_IN,
@@ -66,8 +67,6 @@ const createTransaction = (req, payload, c_session) => __awaiter(void 0, void 0,
                     transactionId: transaction._id,
                 },
             },
-            session,
-            req,
         });
         if (!c_session) {
             yield session.commitTransaction();
@@ -76,7 +75,8 @@ const createTransaction = (req, payload, c_session) => __awaiter(void 0, void 0,
         return transaction;
     }
     catch (error) {
-        yield auditLogs_service_1.auditLogsService.createAuditLog({
+        eventBus_1.eventBus.emit("log", {
+            req,
             payload: {
                 action: payload.type,
                 targetWallet: (payload === null || payload === void 0 ? void 0 : payload.toWallet) ||
@@ -90,7 +90,6 @@ const createTransaction = (req, payload, c_session) => __awaiter(void 0, void 0,
                     message: error.message,
                 },
             },
-            req,
         });
         yield session.abortTransaction();
         yield session.endSession();

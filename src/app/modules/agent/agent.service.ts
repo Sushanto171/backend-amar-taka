@@ -6,8 +6,12 @@ import { AppError } from "../../errorHelpers/AppError";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
+import {
+  IncType,
+  updateTransactionBalance,
+} from "../../utils/updateTransactionBalance";
 import { IAuditActionType } from "../auditLogs/auditLogs.interface";
-import { auditLogsService } from "../auditLogs/auditLogs.service";
+import { eventBus } from "../event/eventBus";
 import {
   ITransaction,
   ITransactionStatus,
@@ -16,8 +20,6 @@ import {
 import { transactionService } from "../transaction/transaction.service";
 import { IRole, IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
-import { IWalletType } from "../wallet/wallet.interface";
-import { Wallet } from "../wallet/wallet.model";
 import { IAgent, IKYCStatus } from "./agent.interface";
 import { Agent } from "./agent.model";
 type IPayload = Pick<
@@ -56,7 +58,10 @@ const registration = async (req: Request) => {
       { session }
     );
 
-    await auditLogsService.createAuditLog({
+    await session.commitTransaction();
+    
+    eventBus.emit("log", {
+      req,
       payload: {
         action: IAuditActionType.REGISTRATION_AGENT,
         actor: user._id,
@@ -64,10 +69,7 @@ const registration = async (req: Request) => {
         status: ITransactionStatus.PENDING,
         metadata: { message: "Agent registration success." },
       },
-      req,
-      session,
     });
-    await session.commitTransaction();
     return agent;
   } catch (error) {
     await session.abortTransaction();
@@ -109,15 +111,14 @@ const verifyAgent = async (req: Request) => {
         { role: IRole.AGENT },
         { session }
       );
-      await Wallet.findByIdAndUpdate(
-        isRegistrationExist.wallet,
-        {
-          $inc: { balance: +envVars.AGENT.AGENT_INITIAL_BALANCE },
-          type: IWalletType.AGENT,
-          revenue: 0,
-        },
-        { session }
-      );
+
+      await updateTransactionBalance({
+        walletId: isRegistrationExist._id as Types.ObjectId,
+        balance: envVars.AGENT.AGENT_INITIAL_BALANCE,
+        incType: IncType.increment,
+        session,
+        revenue: 0,
+      });
 
       const system = await updateSystemWallet({
         session,
@@ -125,21 +126,6 @@ const verifyAgent = async (req: Request) => {
       });
 
       user = isRegistrationExist.user as unknown as IUser;
-
-      await auditLogsService.createAuditLog({
-        payload: {
-          action: IAuditActionType.REGISTRATION_AGENT,
-          actor: req.user.userid,
-          targetUser: user._id,
-          status: ITransactionStatus.VERIFIED,
-          metadata: {
-            message: "Agent registration success.",
-            agentId: new mongoose.Types.ObjectId(agentId),
-          },
-        },
-        req,
-        session,
-      });
 
       const transactionPayload: ITransaction = {
         amount: envVars.AGENT.AGENT_INITIAL_BALANCE, //paisa
@@ -157,6 +143,20 @@ const verifyAgent = async (req: Request) => {
         transactionPayload,
         session
       );
+
+      eventBus.emit("log", {
+        req,
+        payload: {
+          action: IAuditActionType.REGISTRATION_AGENT,
+          actor: req.user.userid,
+          targetUser: user._id,
+          status: ITransactionStatus.VERIFIED,
+          metadata: {
+            message: "Agent registration success.",
+            agentId: new mongoose.Types.ObjectId(agentId),
+          },
+        },
+      });
     }
     if (payload.kycStatus === IKYCStatus.REJECTED) {
       await Agent.findByIdAndUpdate(
@@ -164,7 +164,9 @@ const verifyAgent = async (req: Request) => {
         { kycStatus: IKYCStatus.REJECTED },
         { session }
       );
-      await auditLogsService.createAuditLog({
+
+      eventBus.emit("log", {
+        req,
         payload: {
           action: IAuditActionType.REGISTRATION_AGENT,
           actor: req.user.userid,
@@ -175,8 +177,6 @@ const verifyAgent = async (req: Request) => {
             agentId: new mongoose.Types.ObjectId(agentId),
           },
         },
-        req,
-        session,
       });
     }
 

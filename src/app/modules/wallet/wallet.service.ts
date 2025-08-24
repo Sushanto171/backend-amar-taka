@@ -17,23 +17,49 @@ import {
   IAuditActionType,
   IAuditStatus,
 } from "../auditLogs/auditLogs.interface";
-import { auditLogsService } from "../auditLogs/auditLogs.service";
 import { eventBus } from "../event/eventBus";
-import { ITransactionType } from "../transaction/transaction.interface";
+import {
+  ITransaction,
+  ITransactionStatus,
+  ITransactionType,
+} from "../transaction/transaction.interface";
+import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { IWallet, IWalletType } from "./wallet.interface";
 import { Wallet } from "./wallet.model";
 
-const createWallet = async (userId: Types.ObjectId, session: ClientSession) => {
+const createWallet = async (
+  req: Request,
+  user: Partial<IUser>,
+  session: ClientSession
+) => {
   try {
     const walletPayload: IWallet = {
       balance: envVars.USER.USER_WELCOME_BONUS,
-      user: userId,
+      user: user._id as Types.ObjectId,
       type: IWalletType.PERSONAL,
     };
 
     const walletArray = await Wallet.create([walletPayload], { session });
     const wallet = walletArray[0].toObject();
+
+    const system = await updateSystemWallet({
+      amount: envVars.USER.USER_WELCOME_BONUS,
+      session,
+    });
+
+    const transactionPayload: ITransaction = {
+      amount: envVars.USER.USER_WELCOME_BONUS, //paisa
+      fromWallet: system?._id as Types.ObjectId,
+      toWallet: wallet._id,
+      phone: user.phone as string,
+      fee: 0,
+      status: ITransactionStatus.SUCCESS,
+      type: ITransactionType.CASH_IN,
+      reference: `welcome-bonus-${Date.now()}`,
+    };
+
+    eventBus.emit("transaction", { ...transactionPayload, req });
     return wallet;
   } catch (error) {
     await session.abortTransaction();
@@ -91,7 +117,7 @@ const deposit = async (req: Request) => {
 
     // update to user wallet
     await updateTransactionBalance({
-      userid: transaction.toWallet as Types.ObjectId,
+      walletId: transaction.toWallet as Types.ObjectId,
       balance: transaction.amount - (calculation.deductFee as number),
       session: session,
       incType: IncType.increment,
@@ -99,7 +125,7 @@ const deposit = async (req: Request) => {
 
     // update from agent wallet
     await updateTransactionBalance({
-      userid: transaction.fromWallet,
+      walletId: transaction.fromWallet,
       balance: transaction.amount,
       session: session,
       incType: IncType.decrement,
@@ -126,7 +152,10 @@ const deposit = async (req: Request) => {
       });
     }
 
-    await auditLogsService.createAuditLog({
+    await session.commitTransaction();
+
+    eventBus.emit("log", {
+      req,
       payload: {
         action: IAuditActionType.CASH_IN,
         targetWallet: transaction.toWallet,
@@ -138,11 +167,7 @@ const deposit = async (req: Request) => {
           transactionId: transaction._id,
         },
       },
-      session,
-      req,
     });
-
-    await session.commitTransaction();
     eventBus.emit("sendSms", {
       timeStamp: new Date(),
       message: "Cash in Success",
@@ -156,7 +181,9 @@ const deposit = async (req: Request) => {
 
     return transaction;
   } catch (error: any) {
-    await auditLogsService.createAuditLog({
+    await session.abortTransaction();
+    eventBus.emit("log", {
+      req,
       payload: {
         action: IAuditActionType.CASH_IN,
         targetWallet: transaction
@@ -170,10 +197,7 @@ const deposit = async (req: Request) => {
           message: error.message,
         },
       },
-      session,
-      req,
     });
-    await session.abortTransaction();
     eventBus.emit("sendSms", {
       message: error.message,
       userNumber: transaction?.phone,
@@ -218,7 +242,7 @@ const withdraw = async (req: Request) => {
 
     // update user wallet
     await updateTransactionBalance({
-      userid: transaction.fromWallet,
+      walletId: transaction.fromWallet,
       balance: transaction.amount + (calculation.deductFee as number),
       session: session,
       incType: IncType.decrement,
@@ -226,7 +250,7 @@ const withdraw = async (req: Request) => {
 
     // update agent wallet
     await updateTransactionBalance({
-      userid: transaction.toWallet as Types.ObjectId,
+      walletId: transaction.toWallet as Types.ObjectId,
       balance: transaction.amount,
       incType: IncType.increment,
       revenue: calculation.agentRevenue,
@@ -253,8 +277,11 @@ const withdraw = async (req: Request) => {
       });
     }
 
+    await session.commitTransaction();
+
     // create withdraw log
-    await auditLogsService.createAuditLog({
+    eventBus.emit("log", {
+      req,
       payload: {
         action: IAuditActionType.CASH_OUT,
         targetWallet: transaction.toWallet,
@@ -266,10 +293,8 @@ const withdraw = async (req: Request) => {
           transactionId: transaction._id,
         },
       },
-      session,
-      req,
     });
-    await session.commitTransaction();
+
     eventBus.emit("sendSms", {
       timeStamp: new Date(),
       message: "Cash out Success",
@@ -283,7 +308,10 @@ const withdraw = async (req: Request) => {
 
     return transaction;
   } catch (error: any) {
-    await auditLogsService.createAuditLog({
+    await session.abortTransaction();
+
+    eventBus.emit("log", {
+      req,
       payload: {
         action: IAuditActionType.CASH_OUT,
         targetWallet: transaction
@@ -297,10 +325,8 @@ const withdraw = async (req: Request) => {
           message: error.message,
         },
       },
-      session,
-      req,
     });
-    await session.abortTransaction();
+
     eventBus.emit("sendSms", {
       message: error.message,
       agentNumber: transaction?.phone,
@@ -344,7 +370,7 @@ const P2P = async (req: Request) => {
 
     // update from user wallet
     await updateTransactionBalance({
-      userid: transaction.fromWallet,
+      walletId: transaction.fromWallet,
       balance: transaction.amount + (calculation.deductFee as number),
       incType: IncType.decrement,
       session: session,
@@ -352,7 +378,7 @@ const P2P = async (req: Request) => {
 
     // update to user wallet
     await updateTransactionBalance({
-      userid: transaction.toWallet as Types.ObjectId,
+      walletId: transaction.toWallet as Types.ObjectId,
       balance: transaction.amount,
       incType: IncType.increment,
       session: session,
@@ -372,8 +398,10 @@ const P2P = async (req: Request) => {
       });
     }
 
+    await session.commitTransaction();
     // create action log
-    await auditLogsService.createAuditLog({
+    eventBus.emit("log", {
+      req,
       payload: {
         action: IAuditActionType.P2P_TRANSFER,
         targetWallet: transaction.toWallet,
@@ -385,10 +413,8 @@ const P2P = async (req: Request) => {
           transactionId: transaction._id,
         },
       },
-      session,
-      req,
     });
-    await session.commitTransaction();
+
     eventBus.emit("sendSms", {
       timeStamp: new Date(),
       message: "Send money Success",
@@ -401,7 +427,10 @@ const P2P = async (req: Request) => {
     });
     return transaction;
   } catch (error: any) {
-    await auditLogsService.createAuditLog({
+    await session.abortTransaction();
+
+    eventBus.emit("log", {
+      req,
       payload: {
         action: IAuditActionType.P2P_TRANSFER,
         targetWallet: transaction
@@ -415,10 +444,7 @@ const P2P = async (req: Request) => {
           message: error.message,
         },
       },
-      session,
-      req,
     });
-    await session.abortTransaction();
     eventBus.emit("sendSms", {
       message: error.message,
       userNumber: transaction?.phone,

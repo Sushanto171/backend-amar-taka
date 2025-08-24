@@ -31,7 +31,6 @@ const generateOTP_1 = require("../../utils/generateOTP");
 const jwt_1 = require("../../utils/jwt");
 const temporarilyLockAccount_1 = require("../../utils/temporarilyLockAccount");
 const auditLogs_interface_1 = require("../auditLogs/auditLogs.interface");
-const auditLogs_service_1 = require("../auditLogs/auditLogs.service");
 const eventBus_1 = require("../event/eventBus");
 const user_model_1 = require("../user/user.model");
 const https_status_codes_1 = require("./../../utils/https-status-codes");
@@ -53,14 +52,13 @@ const login = (payload, req) => __awaiter(void 0, void 0, void 0, function* () {
     }
     const matchedPassword = yield (0, bcryptjs_1.comparePassword)(isUserExist.password, payload.password);
     if (!matchedPassword) {
-        yield auditLogs_service_1.auditLogsService.createAuditLog({
+        eventBus_1.eventBus.emit("log", {
             req,
             payload: {
                 actor: isUserExist._id,
                 action: auditLogs_interface_1.IAuditActionType.LOG_IN,
                 status: auditLogs_interface_1.IAuditStatus.FAILED,
             },
-            session,
         });
         yield (0, temporarilyLockAccount_1.temporarilyLockAccount)(isUserExist._id, session);
     }
@@ -74,17 +72,16 @@ const login = (payload, req) => __awaiter(void 0, void 0, void 0, function* () {
     const userToken = (0, jwt_1.createUserTokens)(isUserExist);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _a = isUserExist.toObject(), { password } = _a, user = __rest(_a, ["password"]);
-    yield auditLogs_service_1.auditLogsService.createAuditLog({
+    yield session.commitTransaction();
+    yield session.endSession();
+    eventBus_1.eventBus.emit("log", {
         req,
         payload: {
             actor: isUserExist._id,
             action: auditLogs_interface_1.IAuditActionType.LOG_IN,
             status: auditLogs_interface_1.IAuditStatus.SUCCESS,
         },
-        session,
     });
-    yield session.commitTransaction();
-    yield session.endSession();
     eventBus_1.eventBus.emit("sendSms", {
         timeStamp: new Date(),
         message: "Log in success!",
@@ -120,7 +117,7 @@ const changePassword = (userId, oldPassword, newPassword) => __awaiter(void 0, v
     if (!isUserExist) {
         throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.NOT_FOUND, "User does not found");
     }
-    (0, checkUserWithWallet_1.checkUserWithWallet)(isUserExist); //check user
+    (0, checkUserWithWallet_1.checkUserWithWallet)(isUserExist); //check user profile
     const matchedPassword = yield (0, bcryptjs_1.comparePassword)(isUserExist.password, oldPassword);
     if (!matchedPassword) {
         throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "Password does not matched.");
@@ -144,7 +141,7 @@ const changePassword = (userId, oldPassword, newPassword) => __awaiter(void 0, v
     });
     return { OTP };
 });
-const verifyChangePSotp = (req) => __awaiter(void 0, void 0, void 0, function* () {
+const verifyChangePSOtp = (req) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user.userId;
     const otp = req.body.otp;
     const isUserExist = yield user_model_1.User.findById(userId).select("+password");
@@ -172,7 +169,7 @@ const verifyChangePSotp = (req) => __awaiter(void 0, void 0, void 0, function* (
     yield redis_config_1.redisClient.del(redisOTPKey);
     yield redis_config_1.redisClient.del(redisPwcdKey);
     const token = (0, jwt_1.createUserTokens)(isUserExist);
-    yield auditLogs_service_1.auditLogsService.createAuditLog({
+    eventBus_1.eventBus.emit("log", {
         req,
         payload: {
             action: auditLogs_interface_1.IAuditActionType.PASSWORD_CHANGE,
@@ -221,7 +218,7 @@ const resetPassword = (req) => __awaiter(void 0, void 0, void 0, function* () {
     isUserExist.password = hashedPassword;
     yield isUserExist.save();
     yield redis_config_1.redisClient.del(redisOTPKey);
-    yield auditLogs_service_1.auditLogsService.createAuditLog({
+    eventBus_1.eventBus.emit("log", {
         req,
         payload: {
             action: auditLogs_interface_1.IAuditActionType.PASSWORD_CHANGE,
@@ -235,7 +232,7 @@ exports.authService = {
     login,
     getNewAccessToken,
     changePassword,
-    verifyChangePSotp,
+    verifyChangePSOtp,
     forgetPassword,
     resetPassword,
 };

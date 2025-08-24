@@ -11,6 +11,7 @@ const globalErrorHandler_1 = require("./app/middlewares/globalErrorHandler");
 const notFound_1 = require("./app/middlewares/notFound");
 require("./app/modules/event/listeners/commission.listener");
 require("./app/modules/event/listeners/event.SystemUpdateListener");
+require("./app/modules/event/listeners/event.auditLog.listener");
 require("./app/modules/event/listeners/event.sendSmsListener");
 const routes_1 = require("./app/routes");
 exports.app = (0, express_1.default)();

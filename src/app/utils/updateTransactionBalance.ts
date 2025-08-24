@@ -7,7 +7,7 @@ export enum IncType {
 }
 
 export interface IUpdateTBalance {
-  userid: Types.ObjectId;
+  walletId: Types.ObjectId;
   balance: number;
   session: ClientSession;
   incType: IncType;
@@ -16,7 +16,7 @@ export interface IUpdateTBalance {
 
 export const updateTransactionBalance = async (payload: IUpdateTBalance) => {
   const user = await Wallet.findByIdAndUpdate(
-    payload.userid,
+    payload.walletId,
     {
       $inc: {
         balance: payload.incType + payload.balance,

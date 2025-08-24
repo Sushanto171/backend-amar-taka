@@ -1,4 +1,4 @@
-import { startSession, Types } from "mongoose";
+import { startSession } from "mongoose";
 import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
 import { hashPassword } from "../../utils/bcryptjs";
@@ -8,16 +8,9 @@ import { redisClient } from "../../config/redis.config";
 import { generateOTP } from "../../utils/generateOTP";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { QueryBuilder } from "../../utils/QueryBuilder";
-import { updateSystemWallet } from "../../utils/updateSystemWallet";
 import { IAuditActionType } from "../auditLogs/auditLogs.interface";
-import { auditLogsService } from "../auditLogs/auditLogs.service";
 import { eventBus } from "../event/eventBus";
-import {
-  ITransaction,
-  ITransactionStatus,
-  ITransactionType,
-} from "../transaction/transaction.interface";
-import { transactionService } from "./../transaction/transaction.service";
+import { ITransactionStatus } from "../transaction/transaction.interface";
 import { walletService } from "./../wallet/wallet.service";
 import { IUser } from "./user.interface";
 import { User } from "./user.model";
@@ -38,12 +31,30 @@ const createUser = async (req: Request) => {
     );
 
     const userArray = await User.create([payload], { session });
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...user } = userArray[0].toObject();
 
-    const wallet = await walletService.createWallet(user._id, session);
+    const wallet = await walletService.createWallet(req, user, session);
 
-    await auditLogsService.createAuditLog({
+    await User.findByIdAndUpdate(user._id, { wallet: wallet._id }, { session });
+
+    const otp = generateOTP(6);
+    await session.commitTransaction();
+    const redisKey = `otp:createUser-${user.phone}`;
+    await redisClient.set(redisKey, otp, {
+      expiration: { type: "EX", value: 120 },
+    });
+
+    eventBus.emit("sendSms", {
+      timeStamp: new Date(),
+      otpCode: otp,
+      message: `Your OTP is: ${otp}`,
+      userNumber: user.phone,
+    });
+
+    eventBus.emit("log", {
+      req,
       payload: {
         action: IAuditActionType.REGISTRATION_USER,
         actor: user._id,
@@ -51,40 +62,6 @@ const createUser = async (req: Request) => {
         status: ITransactionStatus.SUCCESS,
         metadata: { message: "User registration success." },
       },
-      req,
-      session,
-    });
-
-    await User.findByIdAndUpdate(user._id, { wallet: wallet._id }, { session });
-
-    const system = await updateSystemWallet({
-      amount: envVars.USER.USER_WELCOME_BONUS,
-      session,
-    });
-
-    const transactionPayload: ITransaction = {
-      amount: envVars.USER.USER_WELCOME_BONUS, //paisa
-      fromWallet: system?._id as Types.ObjectId,
-      toWallet: wallet._id,
-      phone: user.phone,
-      fee: 0,
-      status: ITransactionStatus.SUCCESS,
-      type: ITransactionType.CASH_IN,
-      reference: `welcome-bonus-${Date.now()}`,
-    };
-
-    await transactionService.createTransaction(req, transactionPayload);
-    const otp = generateOTP(6);
-    await session.commitTransaction();
-    const redisKey = `otp:createUser-${user.phone}`;
-    await redisClient.set(redisKey, otp, {
-      expiration: { type: "EX", value: 120 },
-    });
-    eventBus.emit("sendSms", {
-      timeStamp: new Date(),
-      otpCode: otp,
-      message: `Your OTP is: ${otp}`,
-      userNumber: user.phone,
     });
     return { user, otp };
   } catch (error) {
