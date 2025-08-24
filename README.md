@@ -96,8 +96,8 @@ npm start
 | GET    | `/api/v1/user/me`              | Get my profile          | ✅       |
 | GET    | `/api/v1/user`                 | Get all users (Admin)   | ✅ Admin |
 | GET    | `/api/v1/user/:id`             | Get single user (Admin) | ✅ Admin |
+| PATCH  | `/api/v1/user/action`          | delete/suspend user     | ✅ Admin |
 | PATCH  | `/api/v1/user/:id`             | Update user             | ✅       |
-
 ---
 
 ### 🔐 Auth Routes
@@ -130,6 +130,7 @@ npm start
 | Method | Endpoint                     | Description                          | Auth    |
 | ------ | ---------------------------- | ------------------------------------ | ------- |
 | GET    | `/api/v1/wallet`             | Get my wallet                        | ✅       |
+| PATCH  | `/api/v1/wallet/action`      | Block/unblock wallet                 | ✅ Admin |
 | GET    | `/api/v1/wallet/all-wallets` | Get all wallets (Admin)              | ✅ Admin |
 | POST   | `/api/v1/wallet/deposit`     | Deposit to wallet                    | ✅       |
 | POST   | `/api/v1/wallet/withdraw`    | Withdraw from wallet                 | ✅       |
