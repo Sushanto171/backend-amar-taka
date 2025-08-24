@@ -48,6 +48,16 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
     meta: info.metaData,
   });
 });
+const againstUserAction = catchAsync(async (req: Request, res: Response) => {
+  const payload = req.body;
+  await userService.againstUserAction(payload);
+  sendResponse(res, {
+    statusCode: httpsStatusCodes.OK,
+    success: true,
+    message: "Take action successfully!",
+    data: {},
+  });
+});
 
 const getSingleUser = catchAsync(async (req: Request, res: Response) => {
   const userId = req.params.userId;
@@ -86,6 +96,7 @@ export const userController = {
   sendVerifyOTP,
   verifyOTP,
   getAllUsers,
+  againstUserAction,
   getSingleUser,
   getMe,
   updateUser,
