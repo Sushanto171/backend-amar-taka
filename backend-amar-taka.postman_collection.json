@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"name\":\"User6\",\r\n    \"phone\":\"01791407576\",\r\n    \"password\": \"123456\"\r\n}",
+							"raw": "{\r\n    \"name\":\"User2\",\r\n    \"phone\":\"01791407572\",\r\n    \"password\": \"123456\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -68,7 +68,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"otp\":\"150464\"\r\n}",
+							"raw": "{\r\n    \"otp\":\"135266\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -98,13 +98,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://backend-amar-taka.vercel.app/api/v1/user/me",
-							"protocol": "https",
+							"raw": "http://localhost:5000/api/v1/user/me",
+							"protocol": "http",
 							"host": [
-								"backend-amar-taka",
-								"vercel",
-								"app"
+								"localhost"
 							],
+							"port": "5000",
 							"path": [
 								"api",
 								"v1",
@@ -166,7 +165,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:5000/api/v1/user/68a4c013337191bc44ab9951",
+							"raw": "http://localhost:5000/api/v1/user/68ab0d8bb34a60a99ea3105b",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -176,7 +175,7 @@
 								"api",
 								"v1",
 								"user",
-								"68a4c013337191bc44ab9951"
+								"68ab0d8bb34a60a99ea3105b"
 							]
 						}
 					},
@@ -212,6 +211,37 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "take-action (admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userId\":\"68ab0eb0b34a60a99ea31079\",\r\n    \"isSuspended\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/v1/user/action",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"action"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -231,7 +261,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n   \"phone\": \"01791407576\", //user\r\n//    \"phone\": \"01791407585\", //user\r\n    // \"phone\": \"01791407585\",//agent\r\n    // \"phone\": \"01234567891\", //admin\r\n    \"password\": \"123456\"\r\n}",
+							"raw": "{\r\n//    \"phone\": \"01791407571\", //user\r\n//    \"phone\": \"01791407585\", //user\r\n    // \"phone\": \"01791407585\",//agent\r\n    \"phone\": \"01234567891\", //admin\r\n    \"password\": \"123456\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -239,13 +269,12 @@
 							}
 						},
 						"url": {
-							"raw": "https://backend-amar-taka.vercel.app/api/v1/auth/login",
-							"protocol": "https",
+							"raw": "http://localhost:5000/api/v1/auth/login",
+							"protocol": "http",
 							"host": [
-								"backend-amar-taka",
-								"vercel",
-								"app"
+								"localhost"
 							],
+							"port": "5000",
 							"path": [
 								"api",
 								"v1",
@@ -447,13 +476,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://backend-amar-taka.vercel.app/api/v1/auth/logout",
-							"protocol": "https",
+							"raw": "http://localhost:5000/api/v1/auth/logout",
+							"protocol": "http",
 							"host": [
-								"backend-amar-taka",
-								"vercel",
-								"app"
+								"localhost"
 							],
+							"port": "5000",
 							"path": [
 								"api",
 								"v1",
@@ -513,7 +541,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:5000/api/v1/transaction/68a4c013337191bc44ab9959",
+							"raw": "http://localhost:5000/api/v1/transaction/68ab0eb0b34a60a99ea3107e",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -523,7 +551,7 @@
 								"api",
 								"v1",
 								"transaction",
-								"68a4c013337191bc44ab9959"
+								"68ab0eb0b34a60a99ea3107e"
 							]
 						}
 					},
@@ -709,7 +737,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n\"kycStatus\" : \"REJECTED\"\r\n}",
+							"raw": "{\r\n\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -783,21 +811,12 @@
 					"response": []
 				},
 				{
-					"name": "deposit",
+					"name": "get-single-wallet (admin route)",
 					"request": {
-						"method": "POST",
+						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"transactionId\": \"68a22fe7a54d797555f6432b\" ,\r\n    \"password\":  50757500\r\n }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": {
-							"raw": "http://localhost:5000/api/v1/transaction/deposit",
+							"raw": "http://localhost:5000/api/v1/wallet/all-wallets",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -806,7 +825,38 @@
 							"path": [
 								"api",
 								"v1",
-								"transaction",
+								"wallet",
+								"all-wallets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deposit",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"transactionId\": \"68ab16a027f170aad68fc571\" ,\r\n    \"password\":  50757500\r\n }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/v1/wallet/deposit",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"wallet",
 								"deposit"
 							]
 						}
@@ -870,6 +920,37 @@
 								"v1",
 								"wallet",
 								"send-money"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "action-wallet (admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"transactionId\": \"68a731f70f1d34fb670060e9\" ,\r\n    \"password\":  \"123456\"\r\n }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/v1/wallet/action",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"v1",
+								"wallet",
+								"action"
 							]
 						}
 					},
