@@ -14,8 +14,19 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const sendVerifyOTP = catchAsync(async (req: Request, res: Response) => {
+  const otp = await userService.sendVerifyOTP(req.user.phone);
+  sendResponse(res, {
+    statusCode: httpsStatusCodes.CREATED,
+    success: true,
+    message: "User registered successfully!",
+    data: otp,
+  });
+});
+
 const verifyOTP = catchAsync(async (req: Request, res: Response) => {
-  const { otp, phone } = req.body;
+  const { otp } = req.body;
+  const phone = req.user.phone;
   await userService.verifyOTP(phone, otp);
   sendResponse(res, {
     statusCode: httpsStatusCodes.CREATED,
@@ -72,6 +83,7 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
 });
 export const userController = {
   createUser,
+  sendVerifyOTP,
   verifyOTP,
   getAllUsers,
   getSingleUser,

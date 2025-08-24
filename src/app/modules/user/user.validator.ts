@@ -114,9 +114,4 @@ export const verifyOTPZodSchema = z.object({
   otp: z
     .string({ error: "OTP must be required" })
     .min(6, { error: "OTP length must be 6 numbers" }),
-  phone: z
-    .string({
-      error: "Phone number is required",
-    })
-    .regex(bdPhoneRegex, { message: "Invalid Bangladesh phone number format" }),
 });

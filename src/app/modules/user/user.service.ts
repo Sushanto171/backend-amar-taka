@@ -39,19 +39,7 @@ const createUser = async (req: Request) => {
 
     await User.findByIdAndUpdate(user._id, { wallet: wallet._id }, { session });
 
-    const otp = generateOTP(6);
     await session.commitTransaction();
-    const redisKey = `otp:createUser-${user.phone}`;
-    await redisClient.set(redisKey, otp, {
-      expiration: { type: "EX", value: 120 },
-    });
-
-    eventBus.emit("sendSms", {
-      timeStamp: new Date(),
-      otpCode: otp,
-      message: `Your OTP is: ${otp}`,
-      userNumber: user.phone,
-    });
 
     eventBus.emit("log", {
       req,
@@ -63,13 +51,29 @@ const createUser = async (req: Request) => {
         metadata: { message: "User registration success." },
       },
     });
-    return { user, otp };
+    return { user };
   } catch (error) {
     await session.abortTransaction();
     throw error;
   } finally {
     await session.endSession();
   }
+};
+
+const sendVerifyOTP = async (phone: string) => {
+  const otp = generateOTP(6);
+  const redisKey = `otp:createUser-${phone}`;
+  await redisClient.set(redisKey, otp, {
+    expiration: { type: "EX", value: 120 },
+  });
+
+  eventBus.emit("sendSms", {
+    timeStamp: new Date(),
+    otpCode: otp,
+    message: `Your OTP is: ${otp}`,
+    userNumber: phone,
+  });
+  return { otp };
 };
 
 const verifyOTP = async (phone: string, otp: string) => {
@@ -139,6 +143,7 @@ const updateUser = async (userId: string, payload: Partial<IUser>) => {
 
 export const userService = {
   createUser,
+  sendVerifyOTP,
   verifyOTP,
   getAllUsers,
   getSingleUser,
