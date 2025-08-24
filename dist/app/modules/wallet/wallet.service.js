@@ -75,6 +75,22 @@ const getAllWallets = (query) => __awaiter(void 0, void 0, void 0, function* () 
     const [wallets, meta] = yield Promise.all([wallet.build(), wallet.getMeta()]);
     return { wallets, meta };
 });
+const getSingleWallet = (walletId) => __awaiter(void 0, void 0, void 0, function* () {
+    const wallet = yield wallet_model_1.Wallet.findById(walletId);
+    if (!wallet) {
+        throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.NOT_FOUND, "Wallet does not found");
+    }
+    return wallet;
+});
+const againstWalletAction = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const wallet = yield wallet_model_1.Wallet.findById(payload.walletId);
+    if (!wallet) {
+        throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.NOT_FOUND, "Wallet does not found");
+    }
+    wallet.isBlock = payload.isBlock;
+    yield wallet.save({ validateBeforeSave: true });
+    return null;
+});
 const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield (0, mongoose_1.startSession)();
     session.startTransaction();
@@ -392,6 +408,8 @@ exports.walletService = {
     createWallet,
     myWallet,
     getAllWallets,
+    getSingleWallet,
+    againstWalletAction,
     deposit,
     withdraw,
     P2P,

@@ -56,6 +56,7 @@ const transaction_interface_1 = require("../transaction/transaction.interface");
 const transaction_service_1 = require("../transaction/transaction.service");
 const user_interface_1 = require("../user/user.interface");
 const user_model_1 = require("../user/user.model");
+const wallet_interface_1 = require("../wallet/wallet.interface");
 const agent_interface_1 = require("./agent.interface");
 const agent_model_1 = require("./agent.model");
 const registration = (req) => __awaiter(void 0, void 0, void 0, function* () {
@@ -121,11 +122,12 @@ const verifyAgent = (req) => __awaiter(void 0, void 0, void 0, function* () {
             agent = yield agent_model_1.Agent.findByIdAndUpdate(agentId, { kycStatus: payload.kycStatus }, { session, new: true, runValidators: true });
             yield user_model_1.User.findByIdAndUpdate(isRegistrationExist.user, { role: user_interface_1.IRole.AGENT }, { session });
             yield (0, updateTransactionBalance_1.updateTransactionBalance)({
-                walletId: isRegistrationExist._id,
+                walletId: isRegistrationExist.wallet,
                 balance: env_config_1.envVars.AGENT.AGENT_INITIAL_BALANCE,
                 incType: updateTransactionBalance_1.IncType.increment,
                 session,
                 revenue: 0,
+                type: wallet_interface_1.IWalletType.AGENT,
             });
             const system = yield (0, updateSystemWallet_1.updateSystemWallet)({
                 session,

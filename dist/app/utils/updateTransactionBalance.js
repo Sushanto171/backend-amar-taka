@@ -17,9 +17,7 @@ var IncType;
     IncType["decrement"] = "-";
 })(IncType || (exports.IncType = IncType = {}));
 const updateTransactionBalance = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield wallet_model_1.Wallet.findByIdAndUpdate(payload.walletId, {
-        $inc: Object.assign({ balance: payload.incType + payload.balance }, (payload.revenue && { revenue: +payload.revenue })),
-    }, { session: payload.session, runValidators: true, new: true });
-    return user;
+    const wallet = yield wallet_model_1.Wallet.findByIdAndUpdate(payload.walletId, Object.assign({ $inc: Object.assign({ balance: payload.incType + payload.balance }, (payload.revenue && { revenue: +payload.revenue })) }, (payload.type && { type: payload.type })), { session: payload.session, runValidators: true, new: true });
+    return wallet;
 });
 exports.updateTransactionBalance = updateTransactionBalance;

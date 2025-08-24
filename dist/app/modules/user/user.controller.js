@@ -53,6 +53,16 @@ const getAllUsers = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0,
         meta: info.metaData,
     });
 }));
+const againstUserAction = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const payload = req.body;
+    yield user_service_1.userService.againstUserAction(payload);
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: https_status_codes_1.httpsStatusCodes.OK,
+        success: true,
+        message: "Take action successfully!",
+        data: {},
+    });
+}));
 const getSingleUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.userId;
     const user = yield user_service_1.userService.getSingleUser(userId);
@@ -88,6 +98,7 @@ exports.userController = {
     sendVerifyOTP,
     verifyOTP,
     getAllUsers,
+    againstUserAction,
     getSingleUser,
     getMe,
     updateUser,

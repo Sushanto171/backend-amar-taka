@@ -34,6 +34,26 @@ const getAllWallets = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 
         meta: info.meta,
     });
 }));
+const getSingleWallet = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const walletId = req.params.walletId;
+    const info = yield wallet_service_1.walletService.getSingleWallet(walletId);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: https_status_codes_1.httpsStatusCodes.OK,
+        message: "Wallet retrieved successfully!",
+        data: info,
+    });
+}));
+const againstWalletAction = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const payload = req.body;
+    yield wallet_service_1.walletService.againstWalletAction(payload);
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: https_status_codes_1.httpsStatusCodes.OK,
+        success: true,
+        message: "Take action successfully!",
+        data: {},
+    });
+}));
 const deposit = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const transaction = yield wallet_service_1.walletService.deposit(req);
     (0, sendResponse_1.sendResponse)(res, {
@@ -57,13 +77,15 @@ const P2P = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0,
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: https_status_codes_1.httpsStatusCodes.CREATED,
-        message: "Cash out Success.",
+        message: "Send money success.",
         data: transaction,
     });
 }));
 exports.walletController = {
     myWallet,
     getAllWallets,
+    getSingleWallet,
+    againstWalletAction,
     deposit,
     withdraw,
     P2P,
