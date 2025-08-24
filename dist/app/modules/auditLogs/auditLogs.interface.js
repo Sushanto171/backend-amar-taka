@@ -1,0 +1,30 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.IAuditActionType = exports.IAuditStatus = void 0;
+var IAuditStatus;
+(function (IAuditStatus) {
+    IAuditStatus["PENDING"] = "PENDING";
+    IAuditStatus["PROCESSING"] = "PROCESSING";
+    IAuditStatus["SUCCESS"] = "SUCCESS";
+    IAuditStatus["FAILED"] = "FAILED";
+    IAuditStatus["CANCELLED"] = "CANCELLED";
+    IAuditStatus["REVERSED"] = "REVERSED";
+    IAuditStatus["EXPIRED"] = "EXPIRED";
+    IAuditStatus["ON_HOLD"] = "ON_HOLD";
+    IAuditStatus["VERIFIED"] = "VERIFIED";
+    IAuditStatus["REJECTED"] = "REJECTED";
+})(IAuditStatus || (exports.IAuditStatus = IAuditStatus = {}));
+var IAuditActionType;
+(function (IAuditActionType) {
+    IAuditActionType["CASH_IN"] = "CASH_IN";
+    IAuditActionType["CASH_OUT"] = "CASH_OUT";
+    IAuditActionType["P2P_TRANSFER"] = "P2P_TRANSFER";
+    IAuditActionType["MERCHANT_PAYMENT"] = "MERCHANT_PAYMENT";
+    IAuditActionType["BILL_PAYMENT"] = "BILL_PAYMENT";
+    IAuditActionType["PASSWORD_CHANGE"] = "PASSWORD_CHANGE";
+    IAuditActionType["LOG_IN"] = "LOG_IN";
+    IAuditActionType["LOG_OUT"] = "LOG_OUT";
+    IAuditActionType["REGISTRATION"] = "REGISTRATION";
+    IAuditActionType["REGISTRATION_USER"] = "REGISTRATION_USER";
+    IAuditActionType["REGISTRATION_AGENT"] = "REGISTRATION_AGENT";
+})(IAuditActionType || (exports.IAuditActionType = IAuditActionType = {}));

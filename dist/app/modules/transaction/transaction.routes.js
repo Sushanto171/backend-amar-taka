@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TransactionRoutes = void 0;
+const express_1 = require("express");
+const checkAuth_1 = require("../../middlewares/checkAuth");
+const validateZodSchema_1 = require("../../middlewares/validateZodSchema");
+const user_interface_1 = require("../user/user.interface");
+const transaction_controller_1 = require("./transaction.controller");
+const transaction_validator_1 = require("./transaction.validator");
+const router = (0, express_1.Router)();
+router.post("/", (0, validateZodSchema_1.validateRequest)(transaction_validator_1.transactionZodSchema), (0, checkAuth_1.checkAuth)([...Object.values(user_interface_1.IRole)]), transaction_controller_1.transactionController.createTransaction);
+router.get("/", (0, checkAuth_1.checkAuth)([...Object.values(user_interface_1.IRole)]), transaction_controller_1.transactionController.getTransactionByUserId);
+router.get("/all-transactions", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), transaction_controller_1.transactionController.getAllTransactions);
+router.get("/:transactionId", (0, checkAuth_1.checkAuth)([...Object.values(user_interface_1.IRole)]), transaction_controller_1.transactionController.getSingleTransaction);
+exports.TransactionRoutes = router;
