@@ -3,7 +3,11 @@ import { checkAuth } from "../../middlewares/checkAuth";
 import { validateRequest } from "../../middlewares/validateZodSchema";
 import { IRole } from "../user/user.interface";
 import { authController } from "./auth.controller";
-import { resetPasswordZodSchema } from "./auth.validator";
+import {
+  changePwZodSchema,
+  resetPasswordZodSchema,
+  verifyPwChangeOTPZodSchema,
+} from "./auth.validator";
 
 const router = Router();
 
@@ -12,11 +16,13 @@ router.post("/refresh-token", authController.getNewAccessToken);
 router.get("/logout", authController.logout);
 router.post(
   "/change-password",
+  validateRequest(changePwZodSchema),
   checkAuth([...Object.values(IRole)]),
   authController.changePassword
 );
 router.post(
   "/change-password-otp-verify",
+  validateRequest(verifyPwChangeOTPZodSchema),
   checkAuth([...Object.values(IRole)]),
   authController.verifyChangePasswordOtp
 );
