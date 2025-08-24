@@ -51,7 +51,6 @@ const QueryBuilder_1 = require("../../utils/QueryBuilder");
 const updateSystemWallet_1 = require("../../utils/updateSystemWallet");
 const updateTransactionBalance_1 = require("../../utils/updateTransactionBalance");
 const auditLogs_interface_1 = require("../auditLogs/auditLogs.interface");
-const auditLogs_service_1 = require("../auditLogs/auditLogs.service");
 const eventBus_1 = require("../event/eventBus");
 const transaction_interface_1 = require("../transaction/transaction.interface");
 const transaction_service_1 = require("../transaction/transaction.service");
@@ -78,7 +77,9 @@ const registration = (req) => __awaiter(void 0, void 0, void 0, function* () {
         const agentArray = yield agent_model_1.Agent.create([agentPayload], { session });
         const agent = agentArray[0].toObject();
         yield user_model_1.User.findByIdAndUpdate({ _id: new mongoose_1.default.Types.ObjectId(agent.user) }, { agent: agent._id }, { session });
-        yield auditLogs_service_1.auditLogsService.createAuditLog({
+        yield session.commitTransaction();
+        eventBus_1.eventBus.emit("log", {
+            req,
             payload: {
                 action: auditLogs_interface_1.IAuditActionType.REGISTRATION_AGENT,
                 actor: user._id,
@@ -86,10 +87,7 @@ const registration = (req) => __awaiter(void 0, void 0, void 0, function* () {
                 status: transaction_interface_1.ITransactionStatus.PENDING,
                 metadata: { message: "Agent registration success." },
             },
-            req,
-            session,
         });
-        yield session.commitTransaction();
         return agent;
     }
     catch (error) {

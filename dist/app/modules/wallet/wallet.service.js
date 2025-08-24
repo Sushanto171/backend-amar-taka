@@ -21,21 +21,35 @@ const updateTransactionBalance_1 = require("../../utils/updateTransactionBalance
 const updateTransactionStatus_1 = require("../../utils/updateTransactionStatus");
 const validateTransactionBeforeProcess_1 = require("../../utils/validateTransactionBeforeProcess");
 const auditLogs_interface_1 = require("../auditLogs/auditLogs.interface");
-const auditLogs_service_1 = require("../auditLogs/auditLogs.service");
 const eventBus_1 = require("../event/eventBus");
 const transaction_interface_1 = require("../transaction/transaction.interface");
 const user_model_1 = require("../user/user.model");
 const wallet_interface_1 = require("./wallet.interface");
 const wallet_model_1 = require("./wallet.model");
-const createWallet = (userId, session) => __awaiter(void 0, void 0, void 0, function* () {
+const createWallet = (req, user, session) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const walletPayload = {
             balance: env_config_1.envVars.USER.USER_WELCOME_BONUS,
-            user: userId,
+            user: user._id,
             type: wallet_interface_1.IWalletType.PERSONAL,
         };
         const walletArray = yield wallet_model_1.Wallet.create([walletPayload], { session });
         const wallet = walletArray[0].toObject();
+        const system = yield (0, updateSystemWallet_1.updateSystemWallet)({
+            amount: env_config_1.envVars.USER.USER_WELCOME_BONUS,
+            session,
+        });
+        const transactionPayload = {
+            amount: env_config_1.envVars.USER.USER_WELCOME_BONUS, //paisa
+            fromWallet: system === null || system === void 0 ? void 0 : system._id,
+            toWallet: wallet._id,
+            phone: user.phone,
+            fee: 0,
+            status: transaction_interface_1.ITransactionStatus.SUCCESS,
+            type: transaction_interface_1.ITransactionType.CASH_IN,
+            reference: `welcome-bonus-${Date.now()}`,
+        };
+        eventBus_1.eventBus.emit("transaction", Object.assign(Object.assign({}, transactionPayload), { req }));
         return wallet;
     }
     catch (error) {
@@ -109,7 +123,9 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
                 user: system.user,
             });
         }
-        yield auditLogs_service_1.auditLogsService.createAuditLog({
+        yield session.commitTransaction();
+        eventBus_1.eventBus.emit("log", {
+            req,
             payload: {
                 action: auditLogs_interface_1.IAuditActionType.CASH_IN,
                 targetWallet: transaction.toWallet,
@@ -121,10 +137,7 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
                     transactionId: transaction._id,
                 },
             },
-            session,
-            req,
         });
-        yield session.commitTransaction();
         eventBus_1.eventBus.emit("sendSms", {
             timeStamp: new Date(),
             message: "Cash in Success",
@@ -138,7 +151,9 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
         return transaction;
     }
     catch (error) {
-        yield auditLogs_service_1.auditLogsService.createAuditLog({
+        yield session.abortTransaction();
+        eventBus_1.eventBus.emit("log", {
+            req,
             payload: {
                 action: auditLogs_interface_1.IAuditActionType.CASH_IN,
                 targetWallet: transaction
@@ -152,10 +167,7 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
                     message: error.message,
                 },
             },
-            session,
-            req,
         });
-        yield session.abortTransaction();
         eventBus_1.eventBus.emit("sendSms", {
             message: error.message,
             userNumber: transaction === null || transaction === void 0 ? void 0 : transaction.phone,
@@ -217,8 +229,10 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
                 user: system.user,
             });
         }
+        yield session.commitTransaction();
         // create withdraw log
-        yield auditLogs_service_1.auditLogsService.createAuditLog({
+        eventBus_1.eventBus.emit("log", {
+            req,
             payload: {
                 action: auditLogs_interface_1.IAuditActionType.CASH_OUT,
                 targetWallet: transaction.toWallet,
@@ -230,10 +244,7 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
                     transactionId: transaction._id,
                 },
             },
-            session,
-            req,
         });
-        yield session.commitTransaction();
         eventBus_1.eventBus.emit("sendSms", {
             timeStamp: new Date(),
             message: "Cash out Success",
@@ -247,7 +258,9 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
         return transaction;
     }
     catch (error) {
-        yield auditLogs_service_1.auditLogsService.createAuditLog({
+        yield session.abortTransaction();
+        eventBus_1.eventBus.emit("log", {
+            req,
             payload: {
                 action: auditLogs_interface_1.IAuditActionType.CASH_OUT,
                 targetWallet: transaction
@@ -261,10 +274,7 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
                     message: error.message,
                 },
             },
-            session,
-            req,
         });
-        yield session.abortTransaction();
         eventBus_1.eventBus.emit("sendSms", {
             message: error.message,
             agentNumber: transaction === null || transaction === void 0 ? void 0 : transaction.phone,
@@ -320,8 +330,10 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
                 user: system.user,
             });
         }
+        yield session.commitTransaction();
         // create action log
-        yield auditLogs_service_1.auditLogsService.createAuditLog({
+        eventBus_1.eventBus.emit("log", {
+            req,
             payload: {
                 action: auditLogs_interface_1.IAuditActionType.P2P_TRANSFER,
                 targetWallet: transaction.toWallet,
@@ -333,10 +345,7 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
                     transactionId: transaction._id,
                 },
             },
-            session,
-            req,
         });
-        yield session.commitTransaction();
         eventBus_1.eventBus.emit("sendSms", {
             timeStamp: new Date(),
             message: "Send money Success",
@@ -350,7 +359,9 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
         return transaction;
     }
     catch (error) {
-        yield auditLogs_service_1.auditLogsService.createAuditLog({
+        yield session.abortTransaction();
+        eventBus_1.eventBus.emit("log", {
+            req,
             payload: {
                 action: auditLogs_interface_1.IAuditActionType.P2P_TRANSFER,
                 targetWallet: transaction
@@ -364,10 +375,7 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
                     message: error.message,
                 },
             },
-            session,
-            req,
         });
-        yield session.abortTransaction();
         eventBus_1.eventBus.emit("sendSms", {
             message: error.message,
             userNumber: transaction === null || transaction === void 0 ? void 0 : transaction.phone,

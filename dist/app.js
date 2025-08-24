@@ -13,6 +13,7 @@ require("./app/modules/event/listeners/commission.listener");
 require("./app/modules/event/listeners/event.SystemUpdateListener");
 require("./app/modules/event/listeners/event.auditLog.listener");
 require("./app/modules/event/listeners/event.sendSmsListener");
+require("./app/modules/event/listeners/event.transactionListener");
 const routes_1 = require("./app/routes");
 exports.app = (0, express_1.default)();
 exports.app.use((0, cors_1.default)());

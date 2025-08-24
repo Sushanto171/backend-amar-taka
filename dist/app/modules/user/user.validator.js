@@ -81,9 +81,4 @@ exports.verifyOTPZodSchema = zod_1.z.object({
     otp: zod_1.z
         .string({ error: "OTP must be required" })
         .min(6, { error: "OTP length must be 6 numbers" }),
-    phone: zod_1.z
-        .string({
-        error: "Phone number is required",
-    })
-        .regex(bdPhoneRegex, { message: "Invalid Bangladesh phone number format" }),
 });
