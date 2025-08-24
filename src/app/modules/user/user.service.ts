@@ -14,6 +14,7 @@ import { ITransactionStatus } from "../transaction/transaction.interface";
 import { walletService } from "./../wallet/wallet.service";
 import { IUser } from "./user.interface";
 import { User } from "./user.model";
+import { actionType } from "./user.validator";
 
 const createUser = async (req: Request) => {
   const payload = req.body;
@@ -109,6 +110,19 @@ const getAllUsers = async (query: Record<string, string>) => {
   return { users, metaData };
 };
 
+const againstUserAction = async (payload: actionType) => {
+  const user = await User.findById(payload.userId);
+  if (!user) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found.");
+  }
+  user.isDeleted = payload.isDeleted;
+
+  user.isSuspended = payload.isSuspended;
+
+  await user.save({ validateBeforeSave: true });
+  return null;
+};
+
 const getSingleUser = async (userId: string) => {
   const user = await User.findById(userId).select("-password");
   if (!user) {
@@ -146,6 +160,7 @@ export const userService = {
   sendVerifyOTP,
   verifyOTP,
   getAllUsers,
+  againstUserAction,
   getSingleUser,
   getMe,
   updateUser,

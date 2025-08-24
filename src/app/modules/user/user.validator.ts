@@ -73,41 +73,9 @@ export const updateUserZodSchema = z.object({
     .min(1, { message: "Name cannot be empty" })
     .optional(),
 
-  phone: z
-    .string({
-      error: "Phone number is required",
-    })
-    .regex(bdPhoneRegex, { message: "Invalid Bangladesh phone number format" })
-    .optional(),
-
   email: z.string().email({ message: "Invalid email format" }).optional(),
 
   picture: z.string().url({ message: "Invalid picture URL" }).optional(),
-
-  wallet: objectIdSchema.optional(),
-
-  agentId: objectIdSchema.optional(),
-
-  isVerified: z.boolean().optional(),
-
-  isDeleted: z.boolean().optional(),
-
-  isSuspended: z.boolean().optional(),
-
-  role: z.enum(IRole).optional(),
-
-  failedLoginAttempts: z
-    .number()
-    .min(0, { message: "failedLoginAttempts cannot be negative" })
-    .optional(),
-
-  lockUntil: z
-    .preprocess(
-      (arg) =>
-        typeof arg === "string" || arg instanceof Date ? new Date(arg) : arg,
-      z.date()
-    )
-    .optional(),
 });
 
 export const verifyOTPZodSchema = z.object({
@@ -115,3 +83,11 @@ export const verifyOTPZodSchema = z.object({
     .string({ error: "OTP must be required" })
     .min(6, { error: "OTP length must be 6 numbers" }),
 });
+
+export const actionUserZodSchema = z.object({
+  isDeleted: z.boolean().optional(),
+  isSuspended: z.boolean().optional(),
+  userId: z.string({ error: "User id must be required" }),
+});
+
+export type actionType = z.infer<typeof actionUserZodSchema>;
