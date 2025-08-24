@@ -65,7 +65,7 @@ const changePassword = catchAsync(async (req, res) => {
 });
 
 const verifyChangePasswordOtp = catchAsync(async (req, res) => {
-  const userToken = await authService.verifyChangePSotp(req);
+  const userToken = await authService.verifyChangePSOtp(req);
   setAuthCookie(res, userToken);
   sendResponse(res, {
     success: true,

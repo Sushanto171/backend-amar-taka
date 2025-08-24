@@ -49,14 +49,14 @@ const AppError_1 = require("../../errorHelpers/AppError");
 const https_status_codes_1 = require("../../utils/https-status-codes");
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
 const updateSystemWallet_1 = require("../../utils/updateSystemWallet");
+const updateTransactionBalance_1 = require("../../utils/updateTransactionBalance");
 const auditLogs_interface_1 = require("../auditLogs/auditLogs.interface");
 const auditLogs_service_1 = require("../auditLogs/auditLogs.service");
+const eventBus_1 = require("../event/eventBus");
 const transaction_interface_1 = require("../transaction/transaction.interface");
 const transaction_service_1 = require("../transaction/transaction.service");
 const user_interface_1 = require("../user/user.interface");
 const user_model_1 = require("../user/user.model");
-const wallet_interface_1 = require("../wallet/wallet.interface");
-const wallet_model_1 = require("../wallet/wallet.model");
 const agent_interface_1 = require("./agent.interface");
 const agent_model_1 = require("./agent.model");
 const registration = (req) => __awaiter(void 0, void 0, void 0, function* () {
@@ -122,30 +122,18 @@ const verifyAgent = (req) => __awaiter(void 0, void 0, void 0, function* () {
         if (payload.kycStatus === agent_interface_1.IKYCStatus.VERIFIED) {
             agent = yield agent_model_1.Agent.findByIdAndUpdate(agentId, { kycStatus: payload.kycStatus }, { session, new: true, runValidators: true });
             yield user_model_1.User.findByIdAndUpdate(isRegistrationExist.user, { role: user_interface_1.IRole.AGENT }, { session });
-            yield wallet_model_1.Wallet.findByIdAndUpdate(isRegistrationExist.wallet, {
-                $inc: { balance: +env_config_1.envVars.AGENT.AGENT_INITIAL_BALANCE },
-                type: wallet_interface_1.IWalletType.AGENT,
+            yield (0, updateTransactionBalance_1.updateTransactionBalance)({
+                walletId: isRegistrationExist._id,
+                balance: env_config_1.envVars.AGENT.AGENT_INITIAL_BALANCE,
+                incType: updateTransactionBalance_1.IncType.increment,
+                session,
                 revenue: 0,
-            }, { session });
+            });
             const system = yield (0, updateSystemWallet_1.updateSystemWallet)({
                 session,
                 amount: env_config_1.envVars.AGENT.AGENT_INITIAL_BALANCE,
             });
             user = isRegistrationExist.user;
-            yield auditLogs_service_1.auditLogsService.createAuditLog({
-                payload: {
-                    action: auditLogs_interface_1.IAuditActionType.REGISTRATION_AGENT,
-                    actor: req.user.userid,
-                    targetUser: user._id,
-                    status: transaction_interface_1.ITransactionStatus.VERIFIED,
-                    metadata: {
-                        message: "Agent registration success.",
-                        agentId: new mongoose_1.default.Types.ObjectId(agentId),
-                    },
-                },
-                req,
-                session,
-            });
             const transactionPayload = {
                 amount: env_config_1.envVars.AGENT.AGENT_INITIAL_BALANCE, //paisa
                 fromWallet: system === null || system === void 0 ? void 0 : system._id,
@@ -157,10 +145,24 @@ const verifyAgent = (req) => __awaiter(void 0, void 0, void 0, function* () {
                 reference: `new-agent-balance-${Date.now()}`,
             };
             yield transaction_service_1.transactionService.createTransaction(req, transactionPayload, session);
+            eventBus_1.eventBus.emit("log", {
+                req,
+                payload: {
+                    action: auditLogs_interface_1.IAuditActionType.REGISTRATION_AGENT,
+                    actor: req.user.userid,
+                    targetUser: user._id,
+                    status: transaction_interface_1.ITransactionStatus.VERIFIED,
+                    metadata: {
+                        message: "Agent registration success.",
+                        agentId: new mongoose_1.default.Types.ObjectId(agentId),
+                    },
+                },
+            });
         }
         if (payload.kycStatus === agent_interface_1.IKYCStatus.REJECTED) {
             yield agent_model_1.Agent.findByIdAndUpdate(agentId, { kycStatus: agent_interface_1.IKYCStatus.REJECTED }, { session });
-            yield auditLogs_service_1.auditLogsService.createAuditLog({
+            eventBus_1.eventBus.emit("log", {
+                req,
                 payload: {
                     action: auditLogs_interface_1.IAuditActionType.REGISTRATION_AGENT,
                     actor: req.user.userid,
@@ -171,8 +173,6 @@ const verifyAgent = (req) => __awaiter(void 0, void 0, void 0, function* () {
                         agentId: new mongoose_1.default.Types.ObjectId(agentId),
                     },
                 },
-                req,
-                session,
             });
         }
         yield session.commitTransaction();

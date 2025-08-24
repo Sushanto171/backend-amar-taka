@@ -10,7 +10,7 @@ import {
 import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IAuditActionType } from "../auditLogs/auditLogs.interface";
-import { auditLogsService } from "../auditLogs/auditLogs.service";
+import { eventBus } from "../event/eventBus";
 import { User } from "../user/user.model";
 import { ITransaction, ITransactionStatus } from "./transaction.interface";
 import { Transaction } from "./transaction.model";
@@ -30,6 +30,7 @@ const createTransaction = async (
   let toUserInfo;
   let transaction;
   try {
+    //call from api
     if (!payload.toWallet) {
       checkSameNumber(req); //fromUser.phone !== toUser.phone
       checkTransactionTypeWithRole(req.user.role, payload);
@@ -51,7 +52,8 @@ const createTransaction = async (
     });
     transaction = transactionArray[0].toObject();
 
-    await auditLogsService.createAuditLog({
+    eventBus.emit("log", {
+      req,
       payload: {
         action:
           (payload?.type as unknown as IAuditActionType) ||
@@ -67,8 +69,6 @@ const createTransaction = async (
           transactionId: transaction._id,
         },
       },
-      session,
-      req,
     });
 
     if (!c_session) {
@@ -77,7 +77,8 @@ const createTransaction = async (
     }
     return transaction;
   } catch (error: any) {
-    await auditLogsService.createAuditLog({
+    eventBus.emit("log", {
+      req,
       payload: {
         action: payload.type as unknown as IAuditActionType,
         targetWallet:
@@ -92,7 +93,6 @@ const createTransaction = async (
           message: error.message,
         },
       },
-      req,
     });
     await session.abortTransaction();
     await session.endSession();

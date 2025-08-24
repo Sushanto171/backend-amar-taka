@@ -79,14 +79,14 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
         transaction = yield (0, updateTransactionStatus_1.updateTransactionStatus)(transaction, calculation.deductFee, session);
         // update to user wallet
         yield (0, updateTransactionBalance_1.updateTransactionBalance)({
-            userid: transaction.toWallet,
+            walletId: transaction.toWallet,
             balance: transaction.amount - calculation.deductFee,
             session: session,
             incType: updateTransactionBalance_1.IncType.increment,
         });
         // update from agent wallet
         yield (0, updateTransactionBalance_1.updateTransactionBalance)({
-            userid: transaction.fromWallet,
+            walletId: transaction.fromWallet,
             balance: transaction.amount,
             session: session,
             incType: updateTransactionBalance_1.IncType.decrement,
@@ -187,14 +187,14 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
         transaction = yield (0, updateTransactionStatus_1.updateTransactionStatus)(transaction, calculation.deductFee, session);
         // update user wallet
         yield (0, updateTransactionBalance_1.updateTransactionBalance)({
-            userid: transaction.fromWallet,
+            walletId: transaction.fromWallet,
             balance: transaction.amount + calculation.deductFee,
             session: session,
             incType: updateTransactionBalance_1.IncType.decrement,
         });
         // update agent wallet
         yield (0, updateTransactionBalance_1.updateTransactionBalance)({
-            userid: transaction.toWallet,
+            walletId: transaction.toWallet,
             balance: transaction.amount,
             incType: updateTransactionBalance_1.IncType.increment,
             revenue: calculation.agentRevenue,
@@ -296,14 +296,14 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
         transaction = yield (0, updateTransactionStatus_1.updateTransactionStatus)(transaction, calculation.deductFee, session);
         // update from user wallet
         yield (0, updateTransactionBalance_1.updateTransactionBalance)({
-            userid: transaction.fromWallet,
+            walletId: transaction.fromWallet,
             balance: transaction.amount + calculation.deductFee,
             incType: updateTransactionBalance_1.IncType.decrement,
             session: session,
         });
         // update to user wallet
         yield (0, updateTransactionBalance_1.updateTransactionBalance)({
-            userid: transaction.toWallet,
+            walletId: transaction.toWallet,
             balance: transaction.amount,
             incType: updateTransactionBalance_1.IncType.increment,
             session: session,

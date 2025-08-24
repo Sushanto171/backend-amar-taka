@@ -22,7 +22,7 @@ const login = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: https_status_codes_1.httpsStatusCodes.OK,
-        message: "Your login successfully.",
+        message: "You are login successfully.",
         data: Object.assign({ user: response.user }, response.userToken),
     });
 }));
@@ -68,7 +68,7 @@ const changePassword = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void
     });
 }));
 const verifyChangePasswordOtp = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userToken = yield auth_service_1.authService.verifyChangePSotp(req);
+    const userToken = yield auth_service_1.authService.verifyChangePSOtp(req);
     (0, setToken_1.setAuthCookie)(res, userToken);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,

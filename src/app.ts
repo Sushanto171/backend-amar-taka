@@ -5,7 +5,9 @@ import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
 import { notFound } from "./app/middlewares/notFound";
 import "./app/modules/event/listeners/commission.listener";
 import "./app/modules/event/listeners/event.SystemUpdateListener";
-import "./app/modules/event/listeners/event.sendSmsListener"
+import "./app/modules/event/listeners/event.auditLog.listener";
+import "./app/modules/event/listeners/event.sendSmsListener";
+import "./app/modules/event/listeners/event.transactionListener";
 import { router } from "./app/routes";
 
 export const app: Application = express();

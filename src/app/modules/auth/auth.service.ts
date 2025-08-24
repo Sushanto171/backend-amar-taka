@@ -13,7 +13,6 @@ import {
   IAuditActionType,
   IAuditStatus,
 } from "../auditLogs/auditLogs.interface";
-import { auditLogsService } from "../auditLogs/auditLogs.service";
 import { eventBus } from "../event/eventBus";
 import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
@@ -53,14 +52,13 @@ const login = async (
   );
 
   if (!matchedPassword) {
-    await auditLogsService.createAuditLog({
+    eventBus.emit("log", {
       req,
       payload: {
         actor: isUserExist._id,
         action: IAuditActionType.LOG_IN,
         status: IAuditStatus.FAILED,
       },
-      session,
     });
     await temporarilyLockAccount(isUserExist._id, session);
   }
@@ -83,18 +81,17 @@ const login = async (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password, ...user } = isUserExist.toObject();
 
-  await auditLogsService.createAuditLog({
+  await session.commitTransaction();
+  await session.endSession();
+
+  eventBus.emit("log", {
     req,
     payload: {
       actor: isUserExist._id,
       action: IAuditActionType.LOG_IN,
       status: IAuditStatus.SUCCESS,
     },
-    session,
   });
-
-  await session.commitTransaction();
-  await session.endSession();
 
   eventBus.emit("sendSms", {
     timeStamp: new Date(),
@@ -145,7 +142,7 @@ const changePassword = async (
   if (!isUserExist) {
     throw new AppError(httpsStatusCodes.NOT_FOUND, "User does not found");
   }
-  checkUserWithWallet(isUserExist); //check user
+  checkUserWithWallet(isUserExist); //check user profile
 
   const matchedPassword = await comparePassword(
     isUserExist.password,
@@ -182,7 +179,7 @@ const changePassword = async (
   return { OTP };
 };
 
-const verifyChangePSotp = async (req: Request) => {
+const verifyChangePSOtp = async (req: Request) => {
   const userId = req.user.userId;
   const otp = req.body.otp;
   const isUserExist = await User.findById(userId).select("+password");
@@ -213,7 +210,7 @@ const verifyChangePSotp = async (req: Request) => {
   await redisClient.del(redisPwcdKey);
   const token = createUserTokens(isUserExist);
 
-  await auditLogsService.createAuditLog({
+  eventBus.emit("log", {
     req,
     payload: {
       action: IAuditActionType.PASSWORD_CHANGE,
@@ -272,7 +269,7 @@ const resetPassword = async (req: Request) => {
   await isUserExist.save();
   await redisClient.del(redisOTPKey);
 
-  await auditLogsService.createAuditLog({
+  eventBus.emit("log", {
     req,
     payload: {
       action: IAuditActionType.PASSWORD_CHANGE,
@@ -287,7 +284,7 @@ export const authService = {
   login,
   getNewAccessToken,
   changePassword,
-  verifyChangePSotp,
+  verifyChangePSOtp,
   forgetPassword,
   resetPassword,
 };
