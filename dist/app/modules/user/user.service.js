@@ -29,12 +29,9 @@ const redis_config_1 = require("../../config/redis.config");
 const generateOTP_1 = require("../../utils/generateOTP");
 const https_status_codes_1 = require("../../utils/https-status-codes");
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
-const updateSystemWallet_1 = require("../../utils/updateSystemWallet");
 const auditLogs_interface_1 = require("../auditLogs/auditLogs.interface");
-const auditLogs_service_1 = require("../auditLogs/auditLogs.service");
 const eventBus_1 = require("../event/eventBus");
 const transaction_interface_1 = require("../transaction/transaction.interface");
-const transaction_service_1 = require("./../transaction/transaction.service");
 const wallet_service_1 = require("./../wallet/wallet.service");
 const user_model_1 = require("./user.model");
 const createUser = (req) => __awaiter(void 0, void 0, void 0, function* () {
@@ -50,8 +47,11 @@ const createUser = (req) => __awaiter(void 0, void 0, void 0, function* () {
         const userArray = yield user_model_1.User.create([payload], { session });
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const _a = userArray[0].toObject(), { password } = _a, user = __rest(_a, ["password"]);
-        const wallet = yield wallet_service_1.walletService.createWallet(user._id, session);
-        yield auditLogs_service_1.auditLogsService.createAuditLog({
+        const wallet = yield wallet_service_1.walletService.createWallet(req, user, session);
+        yield user_model_1.User.findByIdAndUpdate(user._id, { wallet: wallet._id }, { session });
+        yield session.commitTransaction();
+        eventBus_1.eventBus.emit("log", {
+            req,
             payload: {
                 action: auditLogs_interface_1.IAuditActionType.REGISTRATION_USER,
                 actor: user._id,
@@ -59,38 +59,8 @@ const createUser = (req) => __awaiter(void 0, void 0, void 0, function* () {
                 status: transaction_interface_1.ITransactionStatus.SUCCESS,
                 metadata: { message: "User registration success." },
             },
-            req,
-            session,
         });
-        yield user_model_1.User.findByIdAndUpdate(user._id, { wallet: wallet._id }, { session });
-        const system = yield (0, updateSystemWallet_1.updateSystemWallet)({
-            amount: env_config_1.envVars.USER.USER_WELCOME_BONUS,
-            session,
-        });
-        const transactionPayload = {
-            amount: env_config_1.envVars.USER.USER_WELCOME_BONUS, //paisa
-            fromWallet: system === null || system === void 0 ? void 0 : system._id,
-            toWallet: wallet._id,
-            phone: user.phone,
-            fee: 0,
-            status: transaction_interface_1.ITransactionStatus.SUCCESS,
-            type: transaction_interface_1.ITransactionType.CASH_IN,
-            reference: `welcome-bonus-${Date.now()}`,
-        };
-        yield transaction_service_1.transactionService.createTransaction(req, transactionPayload);
-        const otp = (0, generateOTP_1.generateOTP)(6);
-        yield session.commitTransaction();
-        const redisKey = `otp:createUser-${user.phone}`;
-        yield redis_config_1.redisClient.set(redisKey, otp, {
-            expiration: { type: "EX", value: 120 },
-        });
-        eventBus_1.eventBus.emit("sendSms", {
-            timeStamp: new Date(),
-            otpCode: otp,
-            message: `Your OTP is: ${otp}`,
-            userNumber: user.phone,
-        });
-        return { user, otp };
+        return { user };
     }
     catch (error) {
         yield session.abortTransaction();
@@ -99,6 +69,20 @@ const createUser = (req) => __awaiter(void 0, void 0, void 0, function* () {
     finally {
         yield session.endSession();
     }
+});
+const sendVerifyOTP = (phone) => __awaiter(void 0, void 0, void 0, function* () {
+    const otp = (0, generateOTP_1.generateOTP)(6);
+    const redisKey = `otp:createUser-${phone}`;
+    yield redis_config_1.redisClient.set(redisKey, otp, {
+        expiration: { type: "EX", value: 120 },
+    });
+    eventBus_1.eventBus.emit("sendSms", {
+        timeStamp: new Date(),
+        otpCode: otp,
+        message: `Your OTP is: ${otp}`,
+        userNumber: phone,
+    });
+    return { otp };
 });
 const verifyOTP = (phone, otp) => __awaiter(void 0, void 0, void 0, function* () {
     const isUserExist = yield user_model_1.User.findOne({ phone });
@@ -158,6 +142,7 @@ const updateUser = (userId, payload) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.userService = {
     createUser,
+    sendVerifyOTP,
     verifyOTP,
     getAllUsers,
     getSingleUser,

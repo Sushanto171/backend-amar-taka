@@ -23,8 +23,18 @@ const createUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, 
         data: user,
     });
 }));
+const sendVerifyOTP = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const otp = yield user_service_1.userService.sendVerifyOTP(req.user.phone);
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: https_status_codes_1.httpsStatusCodes.CREATED,
+        success: true,
+        message: "User registered successfully!",
+        data: otp,
+    });
+}));
 const verifyOTP = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { otp, phone } = req.body;
+    const { otp } = req.body;
+    const phone = req.user.phone;
     yield user_service_1.userService.verifyOTP(phone, otp);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: https_status_codes_1.httpsStatusCodes.CREATED,
@@ -75,6 +85,7 @@ const updateUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, 
 }));
 exports.userController = {
     createUser,
+    sendVerifyOTP,
     verifyOTP,
     getAllUsers,
     getSingleUser,

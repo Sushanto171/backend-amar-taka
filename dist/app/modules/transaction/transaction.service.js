@@ -33,6 +33,7 @@ const createTransaction = (req, payload, c_session) => __awaiter(void 0, void 0,
     let toUserInfo;
     let transaction;
     try {
+        //call from api
         if (!payload.toWallet) {
             (0, checkTransactionTypeWithRole_1.checkSameNumber)(req); //fromUser.phone !== toUser.phone
             (0, checkTransactionTypeWithRole_1.checkTransactionTypeWithRole)(req.user.role, payload);
