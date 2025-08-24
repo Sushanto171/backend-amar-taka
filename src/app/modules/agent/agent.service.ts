@@ -20,6 +20,7 @@ import {
 import { transactionService } from "../transaction/transaction.service";
 import { IRole, IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
+import { IWalletType } from "../wallet/wallet.interface";
 import { IAgent, IKYCStatus } from "./agent.interface";
 import { Agent } from "./agent.model";
 type IPayload = Pick<
@@ -59,7 +60,7 @@ const registration = async (req: Request) => {
     );
 
     await session.commitTransaction();
-    
+
     eventBus.emit("log", {
       req,
       payload: {
@@ -113,11 +114,12 @@ const verifyAgent = async (req: Request) => {
       );
 
       await updateTransactionBalance({
-        walletId: isRegistrationExist._id as Types.ObjectId,
+        walletId: isRegistrationExist.wallet as Types.ObjectId,
         balance: envVars.AGENT.AGENT_INITIAL_BALANCE,
         incType: IncType.increment,
         session,
         revenue: 0,
+        type: IWalletType.AGENT,
       });
 
       const system = await updateSystemWallet({

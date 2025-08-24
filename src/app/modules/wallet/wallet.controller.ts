@@ -55,7 +55,7 @@ const P2P = catchAsync(async (req, res) => {
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.CREATED,
-    message: "Cash out Success.",
+    message: "Send money success.",
     data: transaction,
   });
 });
