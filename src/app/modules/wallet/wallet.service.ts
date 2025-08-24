@@ -27,6 +27,7 @@ import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { IWallet, IWalletType } from "./wallet.interface";
 import { Wallet } from "./wallet.model";
+import { WalletAction } from "./wallet.validator";
 
 const createWallet = async (
   req: Request,
@@ -85,6 +86,24 @@ const getAllWallets = async (query: Record<string, string>) => {
     .paginate();
   const [wallets, meta] = await Promise.all([wallet.build(), wallet.getMeta()]);
   return { wallets, meta };
+};
+
+const getSingleWallet = async (walletId: string) => {
+  const wallet = await Wallet.findById(walletId);
+  if (!wallet) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "Wallet does not found");
+  }
+  return wallet;
+};
+
+const againstWalletAction = async (payload: WalletAction) => {
+  const wallet = await Wallet.findById(payload.walletId);
+  if (!wallet) {
+    throw new AppError(httpsStatusCodes.NOT_FOUND, "Wallet does not found");
+  }
+  wallet.isBlock = payload.isBlock;
+  await wallet.save({ validateBeforeSave: true });
+  return null;
 };
 
 const deposit = async (req: Request) => {
@@ -461,6 +480,8 @@ export const walletService = {
   createWallet,
   myWallet,
   getAllWallets,
+  getSingleWallet,
+  againstWalletAction,
   deposit,
   withdraw,
   P2P,

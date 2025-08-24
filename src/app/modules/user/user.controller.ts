@@ -48,6 +48,8 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
     meta: info.metaData,
   });
 });
+
+
 const againstUserAction = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
   await userService.againstUserAction(payload);
