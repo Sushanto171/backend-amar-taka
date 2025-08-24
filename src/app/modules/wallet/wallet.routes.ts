@@ -5,6 +5,7 @@ import { validateRequest } from "../../middlewares/validateZodSchema";
 import { transactionActionZodSchema } from "../transaction/transaction.validator";
 import { IRole } from "../user/user.interface";
 import { walletController } from "./wallet.controller";
+import { walletActionZodSchema } from "./wallet.validator";
 
 const router = Router();
 
@@ -17,6 +18,18 @@ router.get(
   "/all-wallets",
   checkAuth([IRole.ADMIN]),
   walletController.getAllWallets
+);
+router.get(
+  "/:walletId",
+  checkAuth([IRole.ADMIN]),
+  walletController.getSingleWallet
+);
+
+router.patch(
+  "/action",
+  validateRequest(walletActionZodSchema),
+  checkAuth([IRole.ADMIN]),
+  walletController.againstWalletAction
 );
 
 router.post(

@@ -27,6 +27,28 @@ const getAllWallets = catchAsync(async (req, res) => {
   });
 });
 
+const getSingleWallet = catchAsync(async (req, res) => {
+  const walletId = req.params.walletId;
+  const info = await walletService.getSingleWallet(walletId);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.OK,
+    message: "Wallet retrieved successfully!",
+    data: info,
+  });
+});
+
+const againstWalletAction = catchAsync(async (req, res) => {
+  const payload = req.body;
+  await walletService.againstWalletAction(payload);
+  sendResponse(res, {
+    statusCode: httpsStatusCodes.OK,
+    success: true,
+    message: "Take action successfully!",
+    data: {},
+  });
+});
+
 const deposit = catchAsync(async (req, res) => {
   const transaction = await walletService.deposit(req);
 
@@ -63,6 +85,8 @@ const P2P = catchAsync(async (req, res) => {
 export const walletController = {
   myWallet,
   getAllWallets,
+  getSingleWallet,
+  againstWalletAction,
   deposit,
   withdraw,
   P2P,

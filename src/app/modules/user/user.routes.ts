@@ -43,6 +43,7 @@ router.patch(
   checkAuth([IRole.ADMIN]),
   userController.againstUserAction
 );
+
 router.patch(
   "/:userId",
   validateRequest(updateUserZodSchema),
