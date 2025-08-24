@@ -47,6 +47,7 @@ interface IRequiredVars {
   };
   P2P: {
     P2P_PER_THOUSAND_CHARGE: number;
+    P2P_MINIUM_AMOUNT: number;
   };
   TWILIO: {
     ACCOUNT_SID: string;
@@ -96,6 +97,7 @@ const requiredVars = [
   "REDIS_PASSWORD",
   "REDIS_HOST",
   "REDIS_PORT",
+  "P2P_MINIUM_AMOUNT",
 ];
 
 const loadEnvVariables = (): IRequiredVars => {
@@ -162,6 +164,7 @@ const loadEnvVariables = (): IRequiredVars => {
     },
     P2P: {
       P2P_PER_THOUSAND_CHARGE: Number(process.env.P2P_PER_THOUSAND_CHARGE),
+      P2P_MINIUM_AMOUNT: Number(process.env.P2P_MINIUM_AMOUNT),
     },
     TWILIO: {
       ACCOUNT_SID: process.env.ACCOUNT_SID as string,

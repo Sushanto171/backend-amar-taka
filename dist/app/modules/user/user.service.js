@@ -115,6 +115,16 @@ const getAllUsers = (query) => __awaiter(void 0, void 0, void 0, function* () {
     const [users, metaData] = yield Promise.all([user.build(), user.getMeta()]);
     return { users, metaData };
 });
+const againstUserAction = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_model_1.User.findById(payload.userId);
+    if (!user) {
+        throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.NOT_FOUND, "User does not found.");
+    }
+    user.isDeleted = payload.isDeleted;
+    user.isSuspended = payload.isSuspended;
+    yield user.save({ validateBeforeSave: true });
+    return null;
+});
 const getSingleUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield user_model_1.User.findById(userId).select("-password");
     if (!user) {
@@ -145,6 +155,7 @@ exports.userService = {
     sendVerifyOTP,
     verifyOTP,
     getAllUsers,
+    againstUserAction,
     getSingleUser,
     getMe,
     updateUser,

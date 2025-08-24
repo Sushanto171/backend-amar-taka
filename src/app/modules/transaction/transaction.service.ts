@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request } from "express";
 import { ClientSession, startSession, Types } from "mongoose";
+import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
 import { checkToUserWithWallet } from "../../utils/checkToUserWithWallet";
 import {
@@ -12,7 +13,11 @@ import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IAuditActionType } from "../auditLogs/auditLogs.interface";
 import { eventBus } from "../event/eventBus";
 import { User } from "../user/user.model";
-import { ITransaction, ITransactionStatus } from "./transaction.interface";
+import {
+  ITransaction,
+  ITransactionStatus,
+  ITransactionType,
+} from "./transaction.interface";
 import { Transaction } from "./transaction.model";
 
 const createTransaction = async (
@@ -37,6 +42,14 @@ const createTransaction = async (
       toUserInfo = await checkToUserWithWallet(payload, session);
     }
 
+    if (payload.type === ITransactionType.P2P_TRANSFER) {
+      if (payload.amount < envVars.P2P.P2P_MINIUM_AMOUNT) {
+        throw new AppError(
+          httpsStatusCodes.NOT_ACCEPTABLE,
+          `Provide Minimum ${envVars.P2P.P2P_MINIUM_AMOUNT} amount for send money.`
+        );
+      }
+    }
     const transPayload: ITransaction = {
       fromWallet: payload.fromWallet,
       phone: payload.phone,

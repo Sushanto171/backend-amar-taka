@@ -14,5 +14,6 @@ router.post("/verify-otp", (0, validateZodSchema_1.validateRequest)(user_validat
 router.get("/", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), user_controller_1.userController.getAllUsers);
 router.get("/me", (0, checkAuth_1.checkAuth)([...Object.values(user_interface_1.IRole)]), user_controller_1.userController.getMe);
 router.get("/:userId", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), user_controller_1.userController.getSingleUser); // admin route
+router.patch("/action", (0, validateZodSchema_1.validateRequest)(user_validator_1.actionUserZodSchema), (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), user_controller_1.userController.againstUserAction);
 router.patch("/:userId", (0, validateZodSchema_1.validateRequest)(user_validator_1.updateUserZodSchema), user_controller_1.userController.updateUser);
 exports.UserRoutes = router;
