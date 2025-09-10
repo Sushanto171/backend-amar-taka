@@ -78,6 +78,12 @@ export const updateUserZodSchema = z.object({
   picture: z.string().url({ message: "Invalid picture URL" }).optional(),
 });
 
+export const verifyOTPZodSchema = z.object({
+  otp: z
+    .string({ error: "OTP must be required" })
+    .min(6, { error: "OTP length must be 6 numbers" }),
+});
+
 export const actionUserZodSchema = z.object({
   isDeleted: z.boolean().optional(),
   isSuspended: z.boolean().optional(),
