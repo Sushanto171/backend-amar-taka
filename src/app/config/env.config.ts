@@ -47,7 +47,7 @@ interface IRequiredVars {
   };
   P2P: {
     P2P_PER_THOUSAND_CHARGE: number;
-    P2P_MINIUM_AMOUNT: number;
+  P2P_MINIUM_AMOUNT: number;
   };
   TWILIO: {
     ACCOUNT_SID: string;

@@ -17,13 +17,20 @@ export class QueryBuilder<T> {
   }
   search(searchableFields: string[]): this {
     const searchTerm = this.query?.searchTerm || "";
+    const searchTermArr = searchTerm.split(",");
+
     if (searchTerm) {
-      const searchRegex = {
-        $or: searchableFields.map((field) => ({
-          [field]: { $regex: searchTerm, $options: "i" },
-        })),
-      };
-      this.modelQuery = this.modelQuery.find(searchRegex);
+      const regexCondition: { $or: Record<string, { $regex: string; $options: string; }>[]; }[] = [];
+      searchTermArr.map((value) => {
+        const term = {
+          $or: searchableFields.map((field) => ({
+            [field]: { $regex: value, $options: "i" },
+          })),
+        };
+        regexCondition.push(term);
+      });
+
+      this.modelQuery = this.modelQuery.find({ $or: regexCondition });
     }
     return this;
   }

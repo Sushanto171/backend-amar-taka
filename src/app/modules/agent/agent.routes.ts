@@ -22,7 +22,7 @@ router.get("/", checkAuth([IRole.ADMIN]), agentController.allAgents);
 
 router.get(
   "/:agentId",
-  checkAuth([IRole.ADMIN, IRole.AGENT]),
+  checkAuth([...Object.values(IRole)]),
   agentController.getSingleAgent
 );
 

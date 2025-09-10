@@ -7,7 +7,6 @@ import {
   actionUserZodSchema,
   CreateUserZodSchema,
   updateUserZodSchema,
-  verifyOTPZodSchema,
 } from "./user.validator";
 
 const router = Router();
@@ -18,20 +17,9 @@ router.post(
   userController.createUser
 );
 
-router.get(
-  "/send-verify-otp",
-  checkAuth([...Object.values(IRole)]),
-  userController.sendVerifyOTP
-);
 
-router.post(
-  "/verify-otp",
-  validateRequest(verifyOTPZodSchema),
-  checkAuth([...Object.values(IRole)]),
-  userController.verifyOTP
-);
 
-router.get("/", checkAuth([IRole.ADMIN]), userController.getAllUsers);
+router.get("/", checkAuth([...Object.values(IRole)]), userController.getAllUsers);
 
 router.get("/me", checkAuth([...Object.values(IRole)]), userController.getMe);
 

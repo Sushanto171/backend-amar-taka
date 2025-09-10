@@ -28,7 +28,14 @@ const transactionSchema = new Schema<ITransaction>(
       type: Schema.Types.ObjectId,
       ref: "Wallet",
     },
-    phone: {
+    sender: {
+      type: String,
+      required: true,
+      min: 11,
+      max: 14,
+      ref: "User",
+    },
+    receiver: {
       type: String,
       required: true,
       min: 11,

@@ -24,8 +24,7 @@ export const updateSystemWallet = async (payload: IUpdateSystem) => {
       { session, runValidators: true }
     );
     return system;
-  } catch (error) {
-    console.log("System wallet update error:", error);
+  } catch {
     await session.abortTransaction();
     await session.endSession();
     throw new AppError(

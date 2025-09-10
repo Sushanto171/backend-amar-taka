@@ -32,7 +32,7 @@ const agentSchema = new Schema<IAgent>(
     status: {
       type: String,
       enum: Object.values(IAgentStatus),
-      default: IAgentStatus.ACTIVE,
+      default: IAgentStatus.INACTIVE,
     },
     metaData: { type: String },
   },

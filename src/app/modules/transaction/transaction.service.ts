@@ -52,7 +52,8 @@ const createTransaction = async (
     }
     const transPayload: ITransaction = {
       fromWallet: payload.fromWallet,
-      phone: payload.phone,
+      sender: payload.sender,
+      receiver: payload.receiver,
       toWallet: payload?.toWallet || (toUserInfo && toUserInfo.wallet),
       amount: payload.amount,
       reference: payload.reference,
@@ -117,7 +118,7 @@ const getAllTransactions = async (query: Record<string, string>) => {
   const queryBuilder = new QueryBuilder(Transaction.find(), query);
   const transaction = queryBuilder
     .filter()
-    .search(["phone", "reference"])
+    .search(["phone"])
     .fields()
     .sort()
     .paginate();
@@ -145,7 +146,7 @@ const getTransactionByUserId = async (
   );
   const transaction = queryBuilder
     .filter()
-    .search(["phone", "reference"])
+    .search(["sender", "receiver", "reference"])
     .fields()
     .sort()
     .paginate();

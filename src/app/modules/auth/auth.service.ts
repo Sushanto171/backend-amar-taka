@@ -33,6 +33,10 @@ const login = async (
     throw new AppError(httpsStatusCodes.BAD_REQUEST, "User does not exist");
   }
 
+  if (!isUserExist.isVerified) {
+    throw new AppError(httpsStatusCodes.BAD_REQUEST, "User is't verified");
+  }
+
   const date = Date.now();
   if (
     isUserExist.lockUntil &&

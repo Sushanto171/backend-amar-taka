@@ -87,7 +87,7 @@ const getSingleAgent = async (agentId: string) => {
 
 // admin route
 const verifyAgent = async (req: Request) => {
-  const payload: Pick<IAgent, "kycStatus"> = req.body;
+  const payload: Pick<IAgent, "kycStatus" | "status"> = req.body;
   const agentId = req.params.agentId;
   const session = await startSession();
   session.startTransaction();
@@ -104,7 +104,7 @@ const verifyAgent = async (req: Request) => {
     if (payload.kycStatus === IKYCStatus.VERIFIED) {
       agent = await Agent.findByIdAndUpdate(
         agentId,
-        { kycStatus: payload.kycStatus },
+        { kycStatus: payload.kycStatus, status: payload.status },
         { session, new: true, runValidators: true }
       );
       await User.findByIdAndUpdate(
@@ -216,7 +216,12 @@ const updateAgent = async (
 
 const allAgents = async (query: Record<string, string>) => {
   const queryBuilder = new QueryBuilder(Agent.find(), query);
-  const agent = queryBuilder.filter().fields().sort().paginate();
+  const agent = queryBuilder
+    .filter()
+    .fields()
+    .sort()
+    .paginate()
+    .search(["kycStatus"]);
   const [agents, meta] = await Promise.all([agent.build(), agent.getMeta()]);
   return { agents, meta };
 };

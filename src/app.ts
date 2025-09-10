@@ -12,7 +12,12 @@ import { router } from "./app/routes";
 
 export const app: Application = express();
 
-app.use(cors());
+app.use(
+  cors({
+    credentials: true,
+    origin: "http://localhost:3000",
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api/v1", router);

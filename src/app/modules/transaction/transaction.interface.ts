@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 export enum ITransactionType {
   CASH_IN = "CASH_IN",
   CASH_OUT = "CASH_OUT",
-  P2P_TRANSFER = "P2P_TRANSFER", //send money user wallet to user wallet
+  P2P_TRANSFER = "SEND_MONEY",
   MERCHANT_PAYMENT = "MERCHANT_PAYMENT",
   BILL_PAYMENT = "BILL_PAYMENT",
 }
@@ -25,7 +25,8 @@ export interface ITransaction {
   _id?: Types.ObjectId;
   fromWallet: Types.ObjectId;
   toWallet?: Types.ObjectId;
-  phone: string;
+  sender: string;
+  receiver: string;
   type: ITransactionType;
   status: ITransactionStatus;
   amount: number;

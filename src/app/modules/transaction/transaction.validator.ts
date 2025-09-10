@@ -3,11 +3,20 @@ import { ITransactionType } from "./transaction.interface";
 const bdPhoneRegex = /^(?:\+8801|8801|01)[3-9]\d{8}$/;
 // Transaction Zod Schema
 export const transactionZodSchema = z.object({
-  phone: z
+  sender: z
     .string({
-      error: "Phone number is required",
+      error: "Sender number is required",
     })
-    .regex(bdPhoneRegex, { message: "Invalid Bangladesh phone number format" }),
+    .regex(bdPhoneRegex, {
+      message: "Invalid Bangladesh sender number format",
+    }),
+  receiver: z
+    .string({
+      error: "Receiver number is required",
+    })
+    .regex(bdPhoneRegex, {
+      message: "Invalid Bangladesh Receiver number format",
+    }),
   amount: z.preprocess(
     (val) => (typeof val === "string" ? Number(val) : val),
     z.number().positive("Amount must be greater than 0")
