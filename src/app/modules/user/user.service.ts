@@ -74,7 +74,7 @@ const sendVerifyOTP = async (phone: string) => {
     timeStamp: new Date(),
     otpCode: otp,
     message: `Your OTP is: ${otp}`,
-    userNumber: phone,
+    senderNumber: phone,
   });
   return { otp };
 };

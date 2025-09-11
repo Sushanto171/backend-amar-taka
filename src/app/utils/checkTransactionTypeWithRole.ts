@@ -15,7 +15,6 @@ export const checkTransactionTypeWithRole = (
     (userRole === IRole.AGENT && payload.type !== ITransactionType.CASH_IN) ||
     (userRole === IRole.USER && payload.type === ITransactionType.CASH_IN)
   ) {
-    console.log(userRole, payload.type);
     throw new AppError(
       httpsStatusCodes.NOT_ACCEPTABLE,
       "Your are not permitted for this action!"
@@ -24,7 +23,7 @@ export const checkTransactionTypeWithRole = (
 };
 
 export const checkSameNumber = (req: Request) => {
-  if (req.body?.phone === req.user?.phone) {
+  if (req.body?.receiver === req.user?.phone) {
     throw new AppError(
       httpsStatusCodes.NOT_ACCEPTABLE,
       "Your can't transaction with some number!"

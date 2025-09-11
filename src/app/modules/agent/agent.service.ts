@@ -133,7 +133,8 @@ const verifyAgent = async (req: Request) => {
         amount: envVars.AGENT.AGENT_INITIAL_BALANCE, //paisa
         fromWallet: system?._id as Types.ObjectId,
         toWallet: isRegistrationExist.wallet,
-        phone: user.phone,
+        receiver: user.phone,
+        sender: envVars.ADMIN.ADMIN_PHONE,
         fee: 0,
         status: ITransactionStatus.SUCCESS,
         type: ITransactionType.CASH_IN,

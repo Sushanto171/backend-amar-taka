@@ -26,14 +26,14 @@ const createTransaction = async (
   c_session?: ClientSession
 ) => {
   let session: ClientSession;
+  let toUserInfo;
+  let transaction;
   if (c_session) {
     session = c_session;
   } else {
     session = await startSession();
     session.startTransaction();
   }
-  let toUserInfo;
-  let transaction;
   try {
     //call from api
     if (!payload.toWallet) {
@@ -108,8 +108,10 @@ const createTransaction = async (
         },
       },
     });
-    await session.abortTransaction();
-    await session.endSession();
+    if (session.isPinned && !c_session) {
+      await session.abortTransaction().catch();
+      await session.endSession().catch();
+    }
     throw error;
   }
 };

@@ -14,8 +14,7 @@ export const checkToUserWithWallet = async (
   payload: ITransaction,
   session: ClientSession
 ) => {
-  
-  const phone = payload.phone;
+  const phone = payload.receiver;
   let checkToUserRole: IRole;
 
   const isToUserExist = await User.findOne({ phone })

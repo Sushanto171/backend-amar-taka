@@ -191,8 +191,8 @@ const deposit = async (req: Request) => {
     eventBus.emit("sendSms", {
       timeStamp: new Date(),
       message: "Cash in Success",
-      agentNumber: req.user.phone,
-      userNumber: transaction.receiver,
+      senderNumber: transaction.sender,
+      receiverNumber: transaction.receiver,
       fee: transaction.fee,
       amount: transaction.amount - Number(calculation.deductFee),
       reference: transaction.reference,
@@ -220,8 +220,8 @@ const deposit = async (req: Request) => {
     });
     eventBus.emit("sendSms", {
       message: error.message,
-      userNumber: transaction?.receiver,
-      agentNumber: req.user.phone,
+      senderNumber: transaction?.sender,
+      receiverNumber: transaction?.receiver,
       timeStamp: new Date(),
     });
     throw error;
@@ -318,8 +318,8 @@ const withdraw = async (req: Request) => {
     eventBus.emit("sendSms", {
       timeStamp: new Date(),
       message: "Cash out Success",
-      userNumber: req.user.phone,
-      agentNumber: transaction.receiver,
+      senderNumber: transaction.sender,
+      receiverNumber: transaction.receiver,
       fee: transaction.fee,
       amount: transaction.amount + Number(calculation.deductFee),
       reference: transaction.reference,
@@ -349,8 +349,8 @@ const withdraw = async (req: Request) => {
 
     eventBus.emit("sendSms", {
       message: error.message,
-      agentNumber: transaction?.receiver,
-      userNumber: req.user.phone,
+      senderNumber: transaction?.sender,
+      receiverNumber: transaction?.receiver,
       timeStamp: new Date(),
     });
     throw error;
@@ -438,8 +438,8 @@ const P2P = async (req: Request) => {
     eventBus.emit("sendSms", {
       timeStamp: new Date(),
       message: "Send money Success",
-      userNumber: req.user.phone,
-      agentNumber: transaction.receiver, //to user
+      senderNumber: transaction.sender,
+      receiverNumber: transaction.receiver,
       fee: transaction.fee,
       amount: transaction.amount + Number(calculation.deductFee),
       reference: transaction.reference,
@@ -467,8 +467,8 @@ const P2P = async (req: Request) => {
     });
     eventBus.emit("sendSms", {
       message: error.message,
-      agentNumber: transaction?.receiver,
-      userNumber: req.user.phone, // to user
+      senderNumber: transaction?.sender,
+      receiverNumber: transaction?.receiver,
       timeStamp: new Date(),
     });
     throw error;

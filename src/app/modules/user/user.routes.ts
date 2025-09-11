@@ -31,7 +31,11 @@ router.post(
   userController.verifyOTP
 );
 
-router.get("/", checkAuth([IRole.ADMIN]), userController.getAllUsers);
+router.get(
+  "/",
+  checkAuth([...Object.values(IRole)]),
+  userController.getAllUsers
+);
 
 router.get("/me", checkAuth([...Object.values(IRole)]), userController.getMe);
 

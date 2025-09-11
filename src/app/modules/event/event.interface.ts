@@ -5,8 +5,8 @@ import { ITransaction } from "../transaction/transaction.interface";
 
 export interface ISendSms {
   amount?: number;
-  agentNumber?: string;
-  userNumber?: string;
+  senderNumber?: string;
+  receiverNumber?: string;
   transactionId?: string;
   otpCode?: string;
   reference?: string;
