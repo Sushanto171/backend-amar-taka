@@ -10,7 +10,7 @@ const agent_validator_1 = require("./agent.validator");
 const router = (0, express_1.Router)();
 router.post("/registration", (0, validateZodSchema_1.validateRequest)(agent_validator_1.agentCoreZodSchema), (0, checkAuth_1.checkAuth)([user_interface_1.IRole.USER]), agent_controller_1.agentController.registration);
 router.get("/", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), agent_controller_1.agentController.allAgents);
-router.get("/:agentId", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN, user_interface_1.IRole.AGENT]), agent_controller_1.agentController.getSingleAgent);
+router.get("/:agentId", (0, checkAuth_1.checkAuth)([...Object.values(user_interface_1.IRole)]), agent_controller_1.agentController.getSingleAgent);
 router.patch("/verify-status/:agentId", (0, validateZodSchema_1.validateRequest)(agent_validator_1.agentStatusZodSchema), (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), agent_controller_1.agentController.verifyAgent);
 router.patch("/:agentId", (0, validateZodSchema_1.validateRequest)(agent_validator_1.agentUpdateZodSchema), (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN, user_interface_1.IRole.AGENT]), agent_controller_1.agentController.updateAgent);
 exports.AgentRoutes = router;

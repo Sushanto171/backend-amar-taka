@@ -119,7 +119,7 @@ const verifyAgent = (req) => __awaiter(void 0, void 0, void 0, function* () {
             throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.NOT_FOUND, "Agent does not found");
         }
         if (payload.kycStatus === agent_interface_1.IKYCStatus.VERIFIED) {
-            agent = yield agent_model_1.Agent.findByIdAndUpdate(agentId, { kycStatus: payload.kycStatus }, { session, new: true, runValidators: true });
+            agent = yield agent_model_1.Agent.findByIdAndUpdate(agentId, { kycStatus: payload.kycStatus, status: payload.status }, { session, new: true, runValidators: true });
             yield user_model_1.User.findByIdAndUpdate(isRegistrationExist.user, { role: user_interface_1.IRole.AGENT }, { session });
             yield (0, updateTransactionBalance_1.updateTransactionBalance)({
                 walletId: isRegistrationExist.wallet,
@@ -138,7 +138,8 @@ const verifyAgent = (req) => __awaiter(void 0, void 0, void 0, function* () {
                 amount: env_config_1.envVars.AGENT.AGENT_INITIAL_BALANCE, //paisa
                 fromWallet: system === null || system === void 0 ? void 0 : system._id,
                 toWallet: isRegistrationExist.wallet,
-                phone: user.phone,
+                receiver: user.phone,
+                sender: env_config_1.envVars.ADMIN.ADMIN_PHONE,
                 fee: 0,
                 status: transaction_interface_1.ITransactionStatus.SUCCESS,
                 type: transaction_interface_1.ITransactionType.CASH_IN,
@@ -202,7 +203,12 @@ const updateAgent = (user, agentId, payload) => __awaiter(void 0, void 0, void 0
 });
 const allAgents = (query) => __awaiter(void 0, void 0, void 0, function* () {
     const queryBuilder = new QueryBuilder_1.QueryBuilder(agent_model_1.Agent.find(), query);
-    const agent = queryBuilder.filter().fields().sort().paginate();
+    const agent = queryBuilder
+        .filter()
+        .fields()
+        .sort()
+        .paginate()
+        .search(["kycStatus"]);
     const [agents, meta] = yield Promise.all([agent.build(), agent.getMeta()]);
     return { agents, meta };
 });

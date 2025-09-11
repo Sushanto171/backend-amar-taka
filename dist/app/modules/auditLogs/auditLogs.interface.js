@@ -18,7 +18,7 @@ var IAuditActionType;
 (function (IAuditActionType) {
     IAuditActionType["CASH_IN"] = "CASH_IN";
     IAuditActionType["CASH_OUT"] = "CASH_OUT";
-    IAuditActionType["P2P_TRANSFER"] = "P2P_TRANSFER";
+    IAuditActionType["P2P_TRANSFER"] = "SEND_MONEY";
     IAuditActionType["MERCHANT_PAYMENT"] = "MERCHANT_PAYMENT";
     IAuditActionType["BILL_PAYMENT"] = "BILL_PAYMENT";
     IAuditActionType["PASSWORD_CHANGE"] = "PASSWORD_CHANGE";

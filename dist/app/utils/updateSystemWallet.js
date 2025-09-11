@@ -22,8 +22,7 @@ const updateSystemWallet = (payload) => __awaiter(void 0, void 0, void 0, functi
         }, { session, runValidators: true });
         return system;
     }
-    catch (error) {
-        console.log("System wallet update error:", error);
+    catch (_a) {
         yield session.abortTransaction();
         yield session.endSession();
         throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.INTERNAL_SERVER_ERROR, "System wallet update error.");

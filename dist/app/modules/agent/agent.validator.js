@@ -38,7 +38,6 @@ exports.agentCoreZodSchema = zod_1.z.object({
 });
 exports.agentUpdateZodSchema = zod_1.z.object({
     nidPhotoUrl: exports.nidPhotoTypeSchema.optional(),
-    status: zod_1.z.enum(Object.values(agent_interface_1.IAgentStatus)).optional(),
     serviceAreas: zod_1.z
         .array(zod_1.z
         .string({ error: "service area is required" })
@@ -49,4 +48,5 @@ exports.agentUpdateZodSchema = zod_1.z.object({
 });
 exports.agentStatusZodSchema = zod_1.z.object({
     kycStatus: zod_1.z.enum(Object.values(agent_interface_1.IKYCStatus)),
+    status: zod_1.z.enum(Object.values(agent_interface_1.IAgentStatus)).optional(),
 });

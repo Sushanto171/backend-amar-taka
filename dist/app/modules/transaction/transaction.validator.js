@@ -6,11 +6,20 @@ const transaction_interface_1 = require("./transaction.interface");
 const bdPhoneRegex = /^(?:\+8801|8801|01)[3-9]\d{8}$/;
 // Transaction Zod Schema
 exports.transactionZodSchema = zod_1.z.object({
-    phone: zod_1.z
+    sender: zod_1.z
         .string({
-        error: "Phone number is required",
+        error: "Sender number is required",
     })
-        .regex(bdPhoneRegex, { message: "Invalid Bangladesh phone number format" }),
+        .regex(bdPhoneRegex, {
+        message: "Invalid Bangladesh sender number format",
+    }),
+    receiver: zod_1.z
+        .string({
+        error: "Receiver number is required",
+    })
+        .regex(bdPhoneRegex, {
+        message: "Invalid Bangladesh Receiver number format",
+    }),
     amount: zod_1.z.preprocess((val) => (typeof val === "string" ? Number(val) : val), zod_1.z.number().positive("Amount must be greater than 0")),
     reference: zod_1.z.string().optional(),
     type: zod_1.z.enum([...Object.values(transaction_interface_1.ITransactionType)]),

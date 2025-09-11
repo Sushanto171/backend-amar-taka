@@ -5,7 +5,7 @@ var ITransactionType;
 (function (ITransactionType) {
     ITransactionType["CASH_IN"] = "CASH_IN";
     ITransactionType["CASH_OUT"] = "CASH_OUT";
-    ITransactionType["P2P_TRANSFER"] = "P2P_TRANSFER";
+    ITransactionType["P2P_TRANSFER"] = "SEND_MONEY";
     ITransactionType["MERCHANT_PAYMENT"] = "MERCHANT_PAYMENT";
     ITransactionType["BILL_PAYMENT"] = "BILL_PAYMENT";
 })(ITransactionType || (exports.ITransactionType = ITransactionType = {}));

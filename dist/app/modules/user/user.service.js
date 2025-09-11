@@ -25,8 +25,6 @@ const mongoose_1 = require("mongoose");
 const env_config_1 = require("../../config/env.config");
 const AppError_1 = require("../../errorHelpers/AppError");
 const bcryptjs_1 = require("../../utils/bcryptjs");
-const redis_config_1 = require("../../config/redis.config");
-const generateOTP_1 = require("../../utils/generateOTP");
 const https_status_codes_1 = require("../../utils/https-status-codes");
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
 const auditLogs_interface_1 = require("../auditLogs/auditLogs.interface");
@@ -39,7 +37,9 @@ const createUser = (req) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield (0, mongoose_1.startSession)();
     session.startTransaction();
     try {
-        const isUserExist = yield user_model_1.User.findOne({ phone: payload.phone });
+        const isUserExist = yield user_model_1.User.findOne({
+            $or: [{ phone: payload.phone }, { phone: `+88${payload.phone}` }],
+        });
         if (isUserExist) {
             throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "User already exist.");
         }
@@ -70,42 +70,10 @@ const createUser = (req) => __awaiter(void 0, void 0, void 0, function* () {
         yield session.endSession();
     }
 });
-const sendVerifyOTP = (phone) => __awaiter(void 0, void 0, void 0, function* () {
-    const otp = (0, generateOTP_1.generateOTP)(6);
-    const redisKey = `otp:createUser-${phone}`;
-    yield redis_config_1.redisClient.set(redisKey, otp, {
-        expiration: { type: "EX", value: 120 },
-    });
-    eventBus_1.eventBus.emit("sendSms", {
-        timeStamp: new Date(),
-        otpCode: otp,
-        message: `Your OTP is: ${otp}`,
-        userNumber: phone,
-    });
-    return { otp };
-});
-const verifyOTP = (phone, otp) => __awaiter(void 0, void 0, void 0, function* () {
-    const isUserExist = yield user_model_1.User.findOne({ phone });
-    if (!isUserExist) {
-        throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.NOT_FOUND, "User does not found");
-    }
-    const redisKey = `otp:createUser-${isUserExist.phone}`;
-    const redisOtp = yield redis_config_1.redisClient.get(redisKey);
-    if (!redisOtp) {
-        throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "OTP is expired");
-    }
-    if (redisOtp !== otp) {
-        // development purpose
-        if (otp !== "123456") {
-            throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "invalid OTP");
-        }
-    }
-    isUserExist.isVerified = true;
-    yield isUserExist.save();
-    return null;
-});
-const getAllUsers = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const queryBuilder = new QueryBuilder_1.QueryBuilder(user_model_1.User.find(), query);
+const getAllUsers = (query, userId) => __awaiter(void 0, void 0, void 0, function* () {
+    const queryBuilder = new QueryBuilder_1.QueryBuilder(user_model_1.User.find({
+        _id: { $ne: userId },
+    }), query);
     const user = queryBuilder
         .filter()
         .search(["name", "phone", "address", "role"])
@@ -133,7 +101,7 @@ const getSingleUser = (userId) => __awaiter(void 0, void 0, void 0, function* ()
     return user;
 });
 const getMe = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const isUserExist = yield user_model_1.User.findById(userId).populate("wallet");
+    const isUserExist = yield user_model_1.User.findById(userId);
     if (!isUserExist) {
         throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.NOT_FOUND, "User does not found!");
     }
@@ -152,8 +120,6 @@ const updateUser = (userId, payload) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.userService = {
     createUser,
-    sendVerifyOTP,
-    verifyOTP,
     getAllUsers,
     againstUserAction,
     getSingleUser,

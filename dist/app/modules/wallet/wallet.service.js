@@ -11,7 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.walletService = void 0;
 const mongoose_1 = require("mongoose");
-const env_config_1 = require("../../config/env.config");
 const AppError_1 = require("../../errorHelpers/AppError");
 const calculatePercent_1 = require("../../utils/calculatePercent");
 const https_status_codes_1 = require("../../utils/https-status-codes");
@@ -29,27 +28,12 @@ const wallet_model_1 = require("./wallet.model");
 const createWallet = (req, user, session) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const walletPayload = {
-            balance: env_config_1.envVars.USER.USER_WELCOME_BONUS,
+            balance: 0,
             user: user._id,
             type: wallet_interface_1.IWalletType.PERSONAL,
         };
         const walletArray = yield wallet_model_1.Wallet.create([walletPayload], { session });
         const wallet = walletArray[0].toObject();
-        const system = yield (0, updateSystemWallet_1.updateSystemWallet)({
-            amount: env_config_1.envVars.USER.USER_WELCOME_BONUS,
-            session,
-        });
-        const transactionPayload = {
-            amount: env_config_1.envVars.USER.USER_WELCOME_BONUS, //paisa
-            fromWallet: system === null || system === void 0 ? void 0 : system._id,
-            toWallet: wallet._id,
-            phone: user.phone,
-            fee: 0,
-            status: transaction_interface_1.ITransactionStatus.SUCCESS,
-            type: transaction_interface_1.ITransactionType.CASH_IN,
-            reference: `welcome-bonus-${Date.now()}`,
-        };
-        eventBus_1.eventBus.emit("transaction", Object.assign(Object.assign({}, transactionPayload), { req }));
         return wallet;
     }
     catch (error) {
@@ -157,8 +141,8 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
         eventBus_1.eventBus.emit("sendSms", {
             timeStamp: new Date(),
             message: "Cash in Success",
-            agentNumber: req.user.phone,
-            userNumber: transaction.phone,
+            senderNumber: transaction.sender,
+            receiverNumber: transaction.receiver,
             fee: transaction.fee,
             amount: transaction.amount - Number(calculation.deductFee),
             reference: transaction.reference,
@@ -186,8 +170,8 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
         });
         eventBus_1.eventBus.emit("sendSms", {
             message: error.message,
-            userNumber: transaction === null || transaction === void 0 ? void 0 : transaction.phone,
-            agentNumber: req.user.phone,
+            senderNumber: transaction === null || transaction === void 0 ? void 0 : transaction.sender,
+            receiverNumber: transaction === null || transaction === void 0 ? void 0 : transaction.receiver,
             timeStamp: new Date(),
         });
         throw error;
@@ -264,8 +248,8 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
         eventBus_1.eventBus.emit("sendSms", {
             timeStamp: new Date(),
             message: "Cash out Success",
-            userNumber: req.user.phone,
-            agentNumber: transaction.phone,
+            senderNumber: transaction.sender,
+            receiverNumber: transaction.receiver,
             fee: transaction.fee,
             amount: transaction.amount + Number(calculation.deductFee),
             reference: transaction.reference,
@@ -293,8 +277,8 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
         });
         eventBus_1.eventBus.emit("sendSms", {
             message: error.message,
-            agentNumber: transaction === null || transaction === void 0 ? void 0 : transaction.phone,
-            userNumber: req.user.phone,
+            senderNumber: transaction === null || transaction === void 0 ? void 0 : transaction.sender,
+            receiverNumber: transaction === null || transaction === void 0 ? void 0 : transaction.receiver,
             timeStamp: new Date(),
         });
         throw error;
@@ -365,8 +349,8 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
         eventBus_1.eventBus.emit("sendSms", {
             timeStamp: new Date(),
             message: "Send money Success",
-            userNumber: req.user.phone,
-            agentNumber: transaction.phone, //to user
+            senderNumber: transaction.sender,
+            receiverNumber: transaction.receiver,
             fee: transaction.fee,
             amount: transaction.amount + Number(calculation.deductFee),
             reference: transaction.reference,
@@ -394,8 +378,8 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
         });
         eventBus_1.eventBus.emit("sendSms", {
             message: error.message,
-            userNumber: transaction === null || transaction === void 0 ? void 0 : transaction.phone,
-            agentNumber: req.user.phone, // to user
+            senderNumber: transaction === null || transaction === void 0 ? void 0 : transaction.sender,
+            receiverNumber: transaction === null || transaction === void 0 ? void 0 : transaction.receiver,
             timeStamp: new Date(),
         });
         throw error;

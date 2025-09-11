@@ -13,5 +13,6 @@ const twilio_config_1 = require("../../../config/twilio.config");
 const eventBus_1 = require("../eventBus");
 eventBus_1.eventBus.on("sendSms", (payload) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(payload);
+    return;
     yield (0, twilio_config_1.sendMessage)("+8801791407583", payload.message);
 }));

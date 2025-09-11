@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request } from "express";
 import { ClientSession, startSession, Types } from "mongoose";
-import { envVars } from "../../config/env.config";
 import { AppError } from "../../errorHelpers/AppError";
 import { calculatePercent } from "../../utils/calculatePercent";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
@@ -18,11 +17,7 @@ import {
   IAuditStatus,
 } from "../auditLogs/auditLogs.interface";
 import { eventBus } from "../event/eventBus";
-import {
-  ITransaction,
-  ITransactionStatus,
-  ITransactionType,
-} from "../transaction/transaction.interface";
+import { ITransactionType } from "../transaction/transaction.interface";
 import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { IWallet, IWalletType } from "./wallet.interface";
@@ -36,7 +31,7 @@ const createWallet = async (
 ) => {
   try {
     const walletPayload: IWallet = {
-      balance: envVars.USER.USER_WELCOME_BONUS,
+      balance: 0,
       user: user._id as Types.ObjectId,
       type: IWalletType.PERSONAL,
     };
@@ -44,24 +39,6 @@ const createWallet = async (
     const walletArray = await Wallet.create([walletPayload], { session });
     const wallet = walletArray[0].toObject();
 
-    const system = await updateSystemWallet({
-      amount: envVars.USER.USER_WELCOME_BONUS,
-      session,
-    });
-
-    const transactionPayload: ITransaction = {
-      amount: envVars.USER.USER_WELCOME_BONUS, //paisa
-      fromWallet: system?._id as Types.ObjectId,
-      toWallet: wallet._id,
-      receiver: user.phone as string,
-      sender: envVars.ADMIN.ADMIN_PHONE,
-      fee: 0,
-      status: ITransactionStatus.SUCCESS,
-      type: ITransactionType.CASH_IN,
-      reference: `welcome-bonus-${Date.now()}`,
-    };
-
-    eventBus.emit("transaction", { ...transactionPayload, req });
     return wallet;
   } catch (error) {
     await session.abortTransaction();

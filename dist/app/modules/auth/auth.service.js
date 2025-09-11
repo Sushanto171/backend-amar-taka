@@ -37,11 +37,16 @@ const https_status_codes_1 = require("./../../utils/https-status-codes");
 const login = (payload, req) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield (0, mongoose_1.startSession)();
     session.startTransaction();
-    const isUserExist = yield user_model_1.User.findOne({ phone: payload.phone })
+    const isUserExist = yield user_model_1.User.findOne({
+        $or: [{ phone: payload.phone }, { phone: `+88${payload.phone}` }],
+    })
         .select("+password")
         .session(session);
     if (!isUserExist) {
         throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "User does not exist");
+    }
+    if (!isUserExist.isVerified) {
+        throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "User is't verified");
     }
     const date = Date.now();
     if (isUserExist.lockUntil &&
@@ -134,7 +139,7 @@ const changePassword = (userId, oldPassword, newPassword) => __awaiter(void 0, v
     });
     const OTP = yield redis_config_1.redisClient.get(redisOTPKey);
     eventBus_1.eventBus.emit("sendSms", {
-        userNumber: isUserExist.phone,
+        receiverNumber: isUserExist.phone,
         timeStamp: new Date(),
         otpCode: randomOTP,
         message: `Your change password OTP is:${randomOTP}`,
@@ -190,7 +195,7 @@ const forgetPassword = (phone) => __awaiter(void 0, void 0, void 0, function* ()
         expiration: { type: "EX", value: 120 },
     });
     eventBus_1.eventBus.emit("sendSms", {
-        userNumber: isUserExist.phone,
+        receiverNumber: isUserExist.phone,
         timeStamp: new Date(),
         otpCode: otp,
         message: `Your OTP is:${otp}`,

@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.transactionService = void 0;
 const mongoose_1 = require("mongoose");
+const env_config_1 = require("../../config/env.config");
 const AppError_1 = require("../../errorHelpers/AppError");
 const checkToUserWithWallet_1 = require("../../utils/checkToUserWithWallet");
 const checkTransactionTypeWithRole_1 = require("../../utils/checkTransactionTypeWithRole");
@@ -23,6 +24,8 @@ const transaction_interface_1 = require("./transaction.interface");
 const transaction_model_1 = require("./transaction.model");
 const createTransaction = (req, payload, c_session) => __awaiter(void 0, void 0, void 0, function* () {
     let session;
+    let toUserInfo;
+    let transaction;
     if (c_session) {
         session = c_session;
     }
@@ -30,8 +33,6 @@ const createTransaction = (req, payload, c_session) => __awaiter(void 0, void 0,
         session = yield (0, mongoose_1.startSession)();
         session.startTransaction();
     }
-    let toUserInfo;
-    let transaction;
     try {
         //call from api
         if (!payload.toWallet) {
@@ -39,9 +40,15 @@ const createTransaction = (req, payload, c_session) => __awaiter(void 0, void 0,
             (0, checkTransactionTypeWithRole_1.checkTransactionTypeWithRole)(req.user.role, payload);
             toUserInfo = yield (0, checkToUserWithWallet_1.checkToUserWithWallet)(payload, session);
         }
+        if (payload.type === transaction_interface_1.ITransactionType.P2P_TRANSFER) {
+            if (payload.amount < env_config_1.envVars.P2P.P2P_MINIUM_AMOUNT) {
+                throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.NOT_ACCEPTABLE, `Provide Minimum ${env_config_1.envVars.P2P.P2P_MINIUM_AMOUNT} amount for send money.`);
+            }
+        }
         const transPayload = {
             fromWallet: payload.fromWallet,
-            phone: payload.phone,
+            sender: payload.sender,
+            receiver: payload.receiver,
             toWallet: (payload === null || payload === void 0 ? void 0 : payload.toWallet) || (toUserInfo && toUserInfo.wallet),
             amount: payload.amount,
             reference: payload.reference,
@@ -92,8 +99,10 @@ const createTransaction = (req, payload, c_session) => __awaiter(void 0, void 0,
                 },
             },
         });
-        yield session.abortTransaction();
-        yield session.endSession();
+        if (session.isPinned && !c_session) {
+            yield session.abortTransaction().catch();
+            yield session.endSession().catch();
+        }
         throw error;
     }
 });
@@ -101,7 +110,7 @@ const getAllTransactions = (query) => __awaiter(void 0, void 0, void 0, function
     const queryBuilder = new QueryBuilder_1.QueryBuilder(transaction_model_1.Transaction.find(), query);
     const transaction = queryBuilder
         .filter()
-        .search(["phone", "reference"])
+        .search(["phone"])
         .fields()
         .sort()
         .paginate();
@@ -121,7 +130,7 @@ const getTransactionByUserId = (userId, query) => __awaiter(void 0, void 0, void
     }), query);
     const transaction = queryBuilder
         .filter()
-        .search(["phone", "reference"])
+        .search(["sender", "receiver", "reference"])
         .fields()
         .sort()
         .paginate();

@@ -18,7 +18,7 @@ const checkAgentKycStatus_1 = require("./checkAgentKycStatus");
 const checkUserWithWallet_1 = require("./checkUserWithWallet");
 const https_status_codes_1 = require("./https-status-codes");
 const checkToUserWithWallet = (payload, session) => __awaiter(void 0, void 0, void 0, function* () {
-    const phone = payload.phone;
+    const phone = payload.receiver;
     let checkToUserRole;
     const isToUserExist = yield user_model_1.User.findOne({ phone })
         .populate(["wallet", "agent"])

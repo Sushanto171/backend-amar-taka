@@ -6,6 +6,7 @@ const agent_routes_1 = require("../modules/agent/agent.routes");
 const auditLogs_routes_1 = require("../modules/auditLogs/auditLogs.routes");
 const auth_routes_1 = require("../modules/auth/auth.routes");
 const commission_routes_1 = require("../modules/commission/commission.routes");
+const otp_routes_1 = require("../modules/otp/otp.routes");
 const stats_routes_1 = require("../modules/stats/stats.routes");
 const transaction_routes_1 = require("../modules/transaction/transaction.routes");
 const user_routes_1 = require("../modules/user/user.routes");
@@ -15,6 +16,10 @@ const moduleRoutes = [
     {
         path: "/user",
         router: user_routes_1.UserRoutes,
+    },
+    {
+        path: "/otp",
+        router: otp_routes_1.OtpRoutes,
     },
     {
         path: "/wallet",

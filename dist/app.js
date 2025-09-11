@@ -16,7 +16,10 @@ require("./app/modules/event/listeners/event.sendSmsListener");
 require("./app/modules/event/listeners/event.transactionListener");
 const routes_1 = require("./app/routes");
 exports.app = (0, express_1.default)();
-exports.app.use((0, cors_1.default)());
+exports.app.use((0, cors_1.default)({
+    credentials: true,
+    origin: "http://localhost:3000",
+}));
 exports.app.use(express_1.default.json());
 exports.app.use((0, cookie_parser_1.default)());
 exports.app.use("/api/v1", routes_1.router);

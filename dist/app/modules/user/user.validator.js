@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.actionUserZodSchema = exports.verifyOTPZodSchema = exports.updateUserZodSchema = exports.CreateUserZodSchema = void 0;
+exports.actionUserZodSchema = exports.updateUserZodSchema = exports.CreateUserZodSchema = void 0;
 const mongoose_1 = require("mongoose");
 const zod_1 = require("zod");
 const user_interface_1 = require("./user.interface");
@@ -57,11 +57,6 @@ exports.updateUserZodSchema = zod_1.z.object({
         .optional(),
     email: zod_1.z.string().email({ message: "Invalid email format" }).optional(),
     picture: zod_1.z.string().url({ message: "Invalid picture URL" }).optional(),
-});
-exports.verifyOTPZodSchema = zod_1.z.object({
-    otp: zod_1.z
-        .string({ error: "OTP must be required" })
-        .min(6, { error: "OTP length must be 6 numbers" }),
 });
 exports.actionUserZodSchema = zod_1.z.object({
     isDeleted: zod_1.z.boolean().optional(),

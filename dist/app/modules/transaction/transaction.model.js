@@ -25,7 +25,14 @@ const transactionSchema = new mongoose_1.Schema({
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "Wallet",
     },
-    phone: {
+    sender: {
+        type: String,
+        required: true,
+        min: 11,
+        max: 14,
+        ref: "User",
+    },
+    receiver: {
         type: String,
         required: true,
         min: 11,

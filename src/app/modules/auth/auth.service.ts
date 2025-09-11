@@ -25,7 +25,9 @@ const login = async (
   const session = await startSession();
   session.startTransaction();
 
-  const isUserExist = await User.findOne({ phone: payload.phone })
+  const isUserExist = await User.findOne({
+    $or: [{ phone: payload.phone }, { phone: `+88${payload.phone}` }],
+  })
     .select("+password")
     .session(session);
 
@@ -175,7 +177,7 @@ const changePassword = async (
 
   const OTP = await redisClient.get(redisOTPKey);
   eventBus.emit("sendSms", {
-    userNumber: isUserExist.phone,
+    receiverNumber: isUserExist.phone,
     timeStamp: new Date(),
     otpCode: randomOTP,
     message: `Your change password OTP is:${randomOTP}`,
@@ -236,7 +238,7 @@ const forgetPassword = async (phone: string) => {
     expiration: { type: "EX", value: 120 },
   });
   eventBus.emit("sendSms", {
-    userNumber: isUserExist.phone,
+    receiverNumber: isUserExist.phone,
     timeStamp: new Date(),
     otpCode: otp,
     message: `Your OTP is:${otp}`,

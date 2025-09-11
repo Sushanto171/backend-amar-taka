@@ -42,6 +42,7 @@ const requiredVars = [
     "REDIS_PASSWORD",
     "REDIS_HOST",
     "REDIS_PORT",
+    "P2P_MINIUM_AMOUNT",
 ];
 const loadEnvVariables = () => {
     requiredVars.forEach((variable) => {
@@ -91,6 +92,7 @@ const loadEnvVariables = () => {
         },
         P2P: {
             P2P_PER_THOUSAND_CHARGE: Number(process.env.P2P_PER_THOUSAND_CHARGE),
+            P2P_MINIUM_AMOUNT: Number(process.env.P2P_MINIUM_AMOUNT),
         },
         TWILIO: {
             ACCOUNT_SID: process.env.ACCOUNT_SID,

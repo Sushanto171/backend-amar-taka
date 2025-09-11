@@ -26,13 +26,18 @@ class QueryBuilder {
     search(searchableFields) {
         var _a;
         const searchTerm = ((_a = this.query) === null || _a === void 0 ? void 0 : _a.searchTerm) || "";
+        const searchTermArr = searchTerm.split(",");
         if (searchTerm) {
-            const searchRegex = {
-                $or: searchableFields.map((field) => ({
-                    [field]: { $regex: searchTerm, $options: "i" },
-                })),
-            };
-            this.modelQuery = this.modelQuery.find(searchRegex);
+            const regexCondition = [];
+            searchTermArr.map((value) => {
+                const term = {
+                    $or: searchableFields.map((field) => ({
+                        [field]: { $regex: value, $options: "i" },
+                    })),
+                };
+                regexCondition.push(term);
+            });
+            this.modelQuery = this.modelQuery.find({ $or: regexCondition });
         }
         return this;
     }

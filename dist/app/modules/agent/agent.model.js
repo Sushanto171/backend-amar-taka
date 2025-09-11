@@ -24,7 +24,7 @@ const agentSchema = new mongoose_1.Schema({
     status: {
         type: String,
         enum: Object.values(agent_interface_1.IAgentStatus),
-        default: agent_interface_1.IAgentStatus.ACTIVE,
+        default: agent_interface_1.IAgentStatus.INACTIVE,
     },
     metaData: { type: String },
 }, {
