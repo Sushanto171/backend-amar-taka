@@ -120,13 +120,13 @@ const getAllTransactions = async (query: Record<string, string>) => {
   const queryBuilder = new QueryBuilder(Transaction.find(), query);
   const transaction = queryBuilder
     .filter()
-    .search(["phone"])
+    .search(["sender", "receiver"])
     .fields()
     .sort()
     .paginate();
   const [trans, meta] = await Promise.all([
     transaction.build(),
-    transaction.getMeta(),
+    transaction.getMeta(true),
   ]);
 
   return { trans, meta };

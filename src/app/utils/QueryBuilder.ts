@@ -20,7 +20,9 @@ export class QueryBuilder<T> {
     const searchTermArr = searchTerm.split(",");
 
     if (searchTerm) {
-      const regexCondition: { $or: Record<string, { $regex: string; $options: string; }>[]; }[] = [];
+      const regexCondition: {
+        $or: Record<string, { $regex: string; $options: string }>[];
+      }[] = [];
       searchTermArr.map((value) => {
         const term = {
           $or: searchableFields.map((field) => ({
