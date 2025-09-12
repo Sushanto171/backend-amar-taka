@@ -61,9 +61,10 @@ export class QueryBuilder<T> {
 
   async getMeta(condition = false) {
     const queryConditions = this.modelQuery.getFilter();
+    const hasConditions = Object.values(queryConditions).length > 0;
 
     const totalDocuments = await this.modelQuery.model.countDocuments(
-      condition ? queryConditions : {}
+      condition || hasConditions ? queryConditions : {}
     );
     const page = Number(this.query?.page) || 1;
     const limit = Number(this.query?.limit) || 10;

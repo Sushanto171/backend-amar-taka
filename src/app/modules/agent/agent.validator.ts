@@ -1,8 +1,6 @@
 import { z } from "zod";
 import { IAgentStatus, IKYCStatus } from "./agent.interface";
 
-
-
 export const nidPhotoTypeSchema = z
   .object({
     frontend: z.string().url().optional(),
@@ -59,7 +57,6 @@ export const agentUpdateZodSchema = z.object({
 });
 
 export const agentStatusZodSchema = z.object({
-  kycStatus: z.enum(Object.values(IKYCStatus)),
+  kycStatus: z.enum(Object.values(IKYCStatus)).optional(),
   status: z.enum(Object.values(IAgentStatus)).optional(),
 });
-

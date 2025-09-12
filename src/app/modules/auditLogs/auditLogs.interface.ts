@@ -13,6 +13,8 @@ export enum IAuditStatus {
   ON_HOLD = "ON_HOLD",
   VERIFIED = "VERIFIED",
   REJECTED = "REJECTED",
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
 }
 
 export enum IAuditActionType {

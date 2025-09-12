@@ -10,7 +10,10 @@ import {
   IncType,
   updateTransactionBalance,
 } from "../../utils/updateTransactionBalance";
-import { IAuditActionType } from "../auditLogs/auditLogs.interface";
+import {
+  IAuditActionType,
+  IAuditStatus,
+} from "../auditLogs/auditLogs.interface";
 import { eventBus } from "../event/eventBus";
 import {
   ITransaction,
@@ -175,6 +178,27 @@ const verifyAgent = async (req: Request) => {
           actor: req.user.userid,
           targetUser: user?._id,
           status: ITransactionStatus.REJECTED,
+          metadata: {
+            message: "Agent registration rejected.",
+            agentId: new mongoose.Types.ObjectId(agentId),
+          },
+        },
+      });
+    }
+    if (!payload.kycStatus && payload.status) {
+      await Agent.findByIdAndUpdate(
+        agentId,
+        { status: payload.status },
+        { session }
+      );
+
+      eventBus.emit("log", {
+        req,
+        payload: {
+          action: IAuditActionType.REGISTRATION_AGENT,
+          actor: req.user.userid,
+          targetUser: user?._id,
+          status: payload.status as unknown as IAuditStatus,
           metadata: {
             message: "Agent registration rejected.",
             agentId: new mongoose.Types.ObjectId(agentId),
