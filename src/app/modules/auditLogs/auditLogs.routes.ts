@@ -5,7 +5,11 @@ import { auditController } from "./auditLogs.controller";
 
 const router = Router();
 
-router.get("/", checkAuth([IRole.ADMIN]), auditController.getLogs);
-router.get("/:logId", checkAuth([IRole.ADMIN]), auditController.getSingleLog);
+router.get("/", checkAuth([...Object.values(IRole)]), auditController.getLogs);
+router.get(
+  "/:logId",
+  checkAuth([...Object.values(IRole)]),
+  auditController.getSingleLog
+);
 
 export const AuditLogsRoutes = router;

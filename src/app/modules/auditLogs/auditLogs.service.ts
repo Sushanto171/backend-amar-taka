@@ -37,6 +37,7 @@ const createAuditLog = async (logInfo: ICreateAudit) => {
     },
   };
   const log = await AuditLogs.create([logPayload], session && { session });
+  console.log({log});
   return log;
 };
 
@@ -44,11 +45,12 @@ const getLogs = async (query: Record<string, string>) => {
   const queryBuilder = new QueryBuilder(AuditLogs.find(), query);
   const auditLog = queryBuilder.filter().fields().sort().paginate();
   const [logs, meta] = await Promise.all([
-    auditLog.build(),
+    auditLog.build().populate("actor", "name phone"),
     auditLog.getMeta(),
   ]);
   return { logs, meta };
 };
+
 const getSingleLogs = async (logId: string) => {
   const log = await AuditLogs.findById(logId);
   return log;

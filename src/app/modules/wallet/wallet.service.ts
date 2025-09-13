@@ -89,6 +89,7 @@ const deposit = async (req: Request) => {
   session.startTransaction();
   let transaction;
   const agentWallet = req.user.wallet as IWallet;
+  const userId = req.user.userId;
   try {
     transaction = await validateTransactionBeforeProcess(
       req,
@@ -156,7 +157,7 @@ const deposit = async (req: Request) => {
       payload: {
         action: IAuditActionType.CASH_IN,
         targetWallet: transaction.toWallet,
-        actor: agentWallet._id as Types.ObjectId,
+        actor: userId,
         actorWallet: transaction.fromWallet,
         status: IAuditStatus.SUCCESS,
         metadata: {
@@ -186,7 +187,7 @@ const deposit = async (req: Request) => {
         targetWallet: transaction
           ? (transaction.toWallet as Types.ObjectId)
           : undefined,
-        actor: agentWallet.user._id,
+        actor: userId,
         actorWallet: agentWallet._id,
         status: IAuditStatus.FAILED,
         metadata: {
@@ -212,6 +213,7 @@ const withdraw = async (req: Request) => {
   session.startTransaction();
   let transaction;
   const userWallet = req.user.wallet as IWallet;
+  const userId = req.user.userId;
 
   try {
     transaction = await validateTransactionBeforeProcess(
@@ -282,7 +284,7 @@ const withdraw = async (req: Request) => {
       payload: {
         action: IAuditActionType.CASH_OUT,
         targetWallet: transaction.toWallet,
-        actor: userWallet._id as Types.ObjectId,
+        actor: userId,
         actorWallet: transaction.fromWallet,
         status: IAuditStatus.SUCCESS,
         metadata: {
@@ -314,7 +316,7 @@ const withdraw = async (req: Request) => {
         targetWallet: transaction
           ? (transaction.toWallet as Types.ObjectId)
           : undefined,
-        actor: userWallet.user._id,
+        actor: userId,
         actorWallet: userWallet._id,
         status: IAuditStatus.FAILED,
         metadata: {
@@ -341,6 +343,7 @@ const P2P = async (req: Request) => {
   session.startTransaction();
   let transaction;
   const fromWallet = req.user.wallet as IWallet;
+  const userId = req.user.userId;
   try {
     transaction = await validateTransactionBeforeProcess(
       req,
@@ -402,7 +405,7 @@ const P2P = async (req: Request) => {
       payload: {
         action: IAuditActionType.P2P_TRANSFER,
         targetWallet: transaction.toWallet,
-        actor: fromWallet._id as Types.ObjectId,
+        actor: userId as Types.ObjectId,
         actorWallet: transaction.fromWallet,
         status: IAuditStatus.SUCCESS,
         metadata: {
@@ -433,7 +436,7 @@ const P2P = async (req: Request) => {
         targetWallet: transaction
           ? (transaction.toWallet as Types.ObjectId)
           : undefined,
-        actor: fromWallet.user._id,
+        actor: userId,
         actorWallet: fromWallet._id,
         status: IAuditStatus.FAILED,
         metadata: {

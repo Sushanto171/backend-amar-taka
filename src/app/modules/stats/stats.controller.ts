@@ -13,11 +13,12 @@ const getUserStats = catchAsync(async (req, res) => {
   });
 });
 const getAgentStats = catchAsync(async (req, res) => {
+  const info = await statsService.getAgentStats();
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
     message: "Retrieved user stats successfully.",
-    data: null,
+    data: info,
   });
 });
 const getTransactionStats = catchAsync(async (req, res) => {

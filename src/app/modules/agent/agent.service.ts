@@ -247,7 +247,10 @@ const allAgents = async (query: Record<string, string>) => {
     .sort()
     .paginate()
     .search(["kycStatus"]);
-  const [agents, meta] = await Promise.all([agent.build(), agent.getMeta()]);
+  const [agents, meta] = await Promise.all([
+    agent.build().populate("wallet", "revenue").populate("user", "name phone"),
+    agent.getMeta(),
+  ]);
   return { agents, meta };
 };
 
