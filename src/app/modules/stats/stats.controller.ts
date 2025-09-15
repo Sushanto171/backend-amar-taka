@@ -17,32 +17,26 @@ const getAgentStats = catchAsync(async (req, res) => {
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
-    message: "Retrieved user stats successfully.",
+    message: "Retrieved Agents stats successfully.",
     data: info,
   });
 });
 const getTransactionStats = catchAsync(async (req, res) => {
+  const info = await statsService.getTransactionStats();
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
-    message: "Retrieved user stats successfully.",
-    data: null,
+    message: "Retrieved Transaction stats successfully.",
+    data: info,
   });
 });
-const getCommissionStats = catchAsync(async (req, res) => {
+const getSystemStats = catchAsync(async (req, res) => {
+  const info = await statsService.getSystemStats(req.user.wallet);
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
-    message: "Retrieved user stats successfully.",
-    data: null,
-  });
-});
-const getAuditLogStats = catchAsync(async (req, res) => {
-  sendResponse(res, {
-    success: true,
-    statusCode: httpsStatusCodes.OK,
-    message: "Retrieved user stats successfully.",
-    data: null,
+    message: "Retrieved system stats successfully.",
+    data: info,
   });
 });
 
@@ -50,6 +44,5 @@ export const statsController = {
   getUserStats,
   getAgentStats,
   getTransactionStats,
-  getCommissionStats,
-  getAuditLogStats,
+  getSystemStats,
 };

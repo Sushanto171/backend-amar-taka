@@ -82,7 +82,7 @@ const verifyOTP = async (req: Request) => {
     sender: envVars.ADMIN.ADMIN_PHONE,
     fee: 0,
     status: ITransactionStatus.SUCCESS,
-    type: ITransactionType.CASH_IN,
+    type: ITransactionType.Bonus,
     reference: `welcome-bonus-${Date.now()}`,
   };
   eventBus.emit("transaction", { ...transactionPayload, req });

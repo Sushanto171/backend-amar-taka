@@ -6,6 +6,7 @@ export enum ITransactionType {
   P2P_TRANSFER = "SEND_MONEY",
   MERCHANT_PAYMENT = "MERCHANT_PAYMENT",
   BILL_PAYMENT = "BILL_PAYMENT",
+  Bonus = "BONUS",
 }
 
 export enum ITransactionStatus {

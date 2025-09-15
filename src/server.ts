@@ -5,6 +5,7 @@ import { app } from "./app";
 import { envVars } from "./app/config/env.config";
 import { connectRedis } from "./app/config/redis.config";
 import { seedAdmin } from "./app/utils/seedAdmin";
+import { seedSettings } from "./app/utils/seedSettings";
 let server: Server;
 
 const startServer = async () => {
@@ -48,5 +49,6 @@ process.on("unhandledRejection", () => {
 (async () => {
   await connectRedis();
   await startServer();
+  await seedSettings();
   await seedAdmin();
 })();
