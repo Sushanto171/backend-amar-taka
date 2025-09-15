@@ -37,7 +37,6 @@ const createAuditLog = async (logInfo: ICreateAudit) => {
     },
   };
   const log = await AuditLogs.create([logPayload], session && { session });
-  console.log({log});
   return log;
 };
 

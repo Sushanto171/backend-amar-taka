@@ -4,7 +4,8 @@ import { ICommission } from "./commission.interface";
 const commissionSchema = new Schema<ICommission>(
   {
     user: { type: Schema.Types.ObjectId, ref: "User" },
-    fee: { type: Number, min: 0, default: 0 },
+    transaction: { type: Schema.Types.ObjectId, ref: "Transaction" },
+    commission: { type: Number, min: 0, default: 0 },
   },
   {
     versionKey: false,

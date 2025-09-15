@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request } from "express";
-import { ClientSession, startSession, Types } from "mongoose";
+import { ClientSession, Document, startSession, Types } from "mongoose";
 import { AppError } from "../../errorHelpers/AppError";
 import { calculatePercent } from "../../utils/calculatePercent";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
@@ -17,7 +17,10 @@ import {
   IAuditStatus,
 } from "../auditLogs/auditLogs.interface";
 import { eventBus } from "../event/eventBus";
-import { ITransactionType } from "../transaction/transaction.interface";
+import {
+  ITransaction,
+  ITransactionType,
+} from "../transaction/transaction.interface";
 import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { IWallet, IWalletType } from "./wallet.interface";
@@ -108,7 +111,7 @@ const deposit = async (req: Request) => {
 
     //update transaction status
     transaction = await updateTransactionStatus(
-      transaction,
+      transaction as Document & ITransaction,
       calculation.deductFee as number,
       session
     );
@@ -132,21 +135,23 @@ const deposit = async (req: Request) => {
 
     //create agent commission
     eventBus.emit("commission", {
-      fee: calculation.agentRevenue as number,
+      commission: calculation.agentRevenue as number,
       user: req.user.userId,
+      transaction: transaction._id as Types.ObjectId,
     });
 
     // increment system revenue
-    const system = await updateSystemWallet({
+    const systemWallet = await updateSystemWallet({
       revenue: calculation.systemRevenue,
       session,
     });
 
     //create system commission
-    if (system) {
+    if (systemWallet) {
       eventBus.emit("commission", {
-        fee: calculation.systemRevenue as number,
-        user: system.user,
+        commission: calculation.systemRevenue as number,
+        user: systemWallet.user,
+        transaction: transaction._id as Types.ObjectId,
       });
     }
 
@@ -258,21 +263,23 @@ const withdraw = async (req: Request) => {
 
     // create agent commission
     eventBus.emit("commission", {
-      fee: calculation.agentRevenue as number,
+      commission: calculation.agentRevenue as number,
       user: transaction.toWallet as Types.ObjectId,
+      transaction: transaction._id as Types.ObjectId,
     });
 
     // increment system revenue
-    const system = await updateSystemWallet({
+    const systemWallet = await updateSystemWallet({
       revenue: calculation.systemRevenue,
       session,
     });
 
     //create system commission
-    if (system) {
+    if (systemWallet) {
       eventBus.emit("commission", {
-        fee: calculation.systemRevenue as number,
-        user: system.user,
+        commission: calculation.systemRevenue as number,
+        user: systemWallet.user,
+        transaction: transaction._id as Types.ObjectId,
       });
     }
 
@@ -385,16 +392,17 @@ const P2P = async (req: Request) => {
     });
 
     // increment system wallet revenue
-    const system = await updateSystemWallet({
+    const systemWallet = await updateSystemWallet({
       revenue: calculation.systemRevenue,
       session,
     });
 
     //create system commission
-    if (system) {
+    if (systemWallet) {
       eventBus.emit("commission", {
-        fee: calculation.systemRevenue as number,
-        user: system.user,
+        commission: calculation.systemRevenue as number,
+        user: systemWallet.user,
+        transaction: transaction._id as Types.ObjectId,
       });
     }
 
