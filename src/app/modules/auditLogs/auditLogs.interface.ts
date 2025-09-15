@@ -29,6 +29,7 @@ export enum IAuditActionType {
   REGISTRATION = "REGISTRATION",
   REGISTRATION_USER = "REGISTRATION_USER",
   REGISTRATION_AGENT = "REGISTRATION_AGENT",
+  BONUS = "BONUS",
 }
 
 export interface IAuditMetadata {

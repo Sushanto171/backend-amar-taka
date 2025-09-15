@@ -4,8 +4,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import { settingsService } from "./settings.service";
 
 const getSettings = catchAsync(async (req, res) => {
-  const body = req.body;
-  const info = await settingsService.sysSettingInit(body);
+  const info = await settingsService.getSysSettings();
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
@@ -17,6 +16,7 @@ const getSettings = catchAsync(async (req, res) => {
 const sysSettingUpdate = catchAsync(async (req, res) => {
   const body = req.body;
   const id = req.params.id;
+
   const info = await settingsService.sysSettingsUpdate(id, body);
   sendResponse(res, {
     success: true,

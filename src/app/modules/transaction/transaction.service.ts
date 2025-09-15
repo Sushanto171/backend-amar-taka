@@ -12,6 +12,7 @@ import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IAuditActionType } from "../auditLogs/auditLogs.interface";
 import { eventBus } from "../event/eventBus";
+import { systemConfig } from "../settings/settings.service";
 import { User } from "../user/user.model";
 import {
   ITransaction,
@@ -43,10 +44,15 @@ const createTransaction = async (
     }
 
     if (payload.type === ITransactionType.P2P_TRANSFER) {
-      if (payload.amount < envVars.P2P.P2P_MINIUM_AMOUNT) {
+      if (
+        payload.amount <
+        (systemConfig?.sendMoney?.min || envVars.P2P.P2P_MINIUM_AMOUNT)
+      ) {
         throw new AppError(
           httpsStatusCodes.NOT_ACCEPTABLE,
-          `Provide Minimum ${envVars.P2P.P2P_MINIUM_AMOUNT} amount for send money.`
+          `Provide Minimum ${
+            systemConfig?.sendMoney?.min || envVars.P2P.P2P_MINIUM_AMOUNT
+          } amount for send money.`
         );
       }
     }

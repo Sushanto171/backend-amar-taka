@@ -7,6 +7,7 @@ import { generateOTP } from "../../utils/generateOTP";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { updateSystemWallet } from "../../utils/updateSystemWallet";
 import { eventBus } from "../event/eventBus";
+import { systemConfig } from "../settings/settings.service";
 import {
   ITransaction,
   ITransactionStatus,
@@ -64,18 +65,19 @@ const verifyOTP = async (req: Request) => {
 
   const system = await updateSystemWallet({
     session,
-    amount: envVars.USER.USER_WELCOME_BONUS,
+    amount: systemConfig?.user?.welcomeBonus || envVars.USER.USER_WELCOME_BONUS,
   });
 
   await Wallet.findByIdAndUpdate(
     isUserExist.wallet,
     {
-      balance: envVars.USER.USER_WELCOME_BONUS,
+      balance:
+        systemConfig?.user?.welcomeBonus || envVars.USER.USER_WELCOME_BONUS,
     },
     { session }
   );
   const transactionPayload: ITransaction = {
-    amount: envVars.USER.USER_WELCOME_BONUS, //paisa
+    amount: systemConfig?.user?.welcomeBonus || envVars.USER.USER_WELCOME_BONUS, //paisa
     fromWallet: system?._id as Types.ObjectId,
     toWallet: isUserExist.wallet,
     receiver: isUserExist.phone as string,

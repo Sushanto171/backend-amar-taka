@@ -1,11 +1,10 @@
-import { Settings } from "../modules/settings/settings.model";
 import { settingsService } from "../modules/settings/settings.service";
 
 export const seedSettings = async () => {
   try {
-    const settings = await Settings.find();
+    const settings = await settingsService.getSysSettings();
 
-    if (!settings.length) {
+    if (!settings) {
       const payload = {
         sysFund: 1000000000,
         deposit: {

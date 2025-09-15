@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+
 export interface ISettings {
   sysFund: number; // Initial system fund
 
@@ -34,3 +36,26 @@ export interface ISettings {
 }
 
 export interface ISettingsDoc extends ISettings, Document {}
+
+export type ISystemConfig =
+  | ({ createdAt: NativeDate; updatedAt: NativeDate } & {
+      sysFund: number;
+      deposit?:
+        | { min: number; feePct: number; sysPct: number; agentPct: number }
+        | null
+        | undefined;
+      withdraw?:
+        | { min: number; feePct: number; sysPct: number; agentPct: number }
+        | null
+        | undefined;
+      sendMoney?: { min: number; perThousandFee: number } | null | undefined;
+      user?:
+        | { welcomeBonus: number; dailyLimit: number; monthlyLimit: number }
+        | null
+        | undefined;
+      agent?:
+        | { dailyLimit: number; monthlyLimit: number; initBal: number }
+        | null
+        | undefined;
+    } & { _id: Types.ObjectId } & { __v: number })
+  | undefined;
