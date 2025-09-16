@@ -16,23 +16,11 @@ require("./app/modules/event/listeners/event.sendSmsListener");
 require("./app/modules/event/listeners/event.transactionListener");
 const routes_1 = require("./app/routes");
 exports.app = (0, express_1.default)();
-const allowedOrigins = [
-    "http://localhost:3000",
-    "https://amar-taka.vercel.app",
-];
-const corsOptionsDelegate = (req, callback) => {
-    const origin = req.header("Origin");
-    if (origin && allowedOrigins.includes(origin)) {
-        callback(null, {
-            origin: origin,
-            credentials: true,
-        });
-    }
-    else {
-        callback(new Error(`CORS policy: Origin ${origin} not allowed`));
-    }
+const corsOptions = {
+    origin: ["http://localhost:3000", "https://amar-taka.vercel.app"],
+    credentials: true,
 };
-exports.app.use((0, cors_1.default)(corsOptionsDelegate));
+exports.app.use((0, cors_1.default)(corsOptions));
 exports.app.use(express_1.default.json());
 exports.app.use((0, cookie_parser_1.default)());
 exports.app.use("/api/v1", routes_1.router);

@@ -1,5 +1,5 @@
 import cookieParser from "cookie-parser";
-import cors, { CorsOptionsDelegate } from "cors";
+import cors from "cors";
 import express, { Application, Request, Response } from "express";
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
 import { notFound } from "./app/middlewares/notFound";
@@ -12,24 +12,12 @@ import { router } from "./app/routes";
 
 export const app: Application = express();
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://amar-taka.vercel.app",
-];
-const corsOptionsDelegate: CorsOptionsDelegate<Request> = (req, callback) => {
-  const origin = req.header("Origin");
-
-  if (origin && allowedOrigins.includes(origin)) {
-    callback(null, {
-      origin: origin,
-      credentials: true,
-    });
-  } else {
-    callback(new Error(`CORS policy: Origin ${origin} not allowed`));
-  }
+const corsOptions = {
+  origin: ["http://localhost:3000", "https://amar-taka.vercel.app"],
+  credentials: true,
 };
 
-app.use(cors(corsOptionsDelegate));
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(cookieParser());

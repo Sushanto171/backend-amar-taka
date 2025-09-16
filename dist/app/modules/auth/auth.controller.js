@@ -10,8 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authController = void 0;
-const env_config_1 = require("../../config/env.config");
 const catchAsync_1 = require("../../utils/catchAsync");
+const cookieOptions_1 = require("../../utils/cookieOptions");
 const https_status_codes_1 = require("../../utils/https-status-codes");
 const sendResponse_1 = require("../../utils/sendResponse");
 const setToken_1 = require("../../utils/setToken");
@@ -38,18 +38,10 @@ const getNewAccessToken = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(v
     });
 }));
 const logout = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    res.clearCookie("accessToken", {
-        httpOnly: true,
-        sameSite: env_config_1.envVars.NODE_ENV === "production" ? "none" : "lax",
-        secure: true,
-        path: "/",
-    });
-    res.clearCookie("refreshToken", {
-        httpOnly: true,
-        sameSite: env_config_1.envVars.NODE_ENV === "production" ? "none" : "lax",
-        secure: true,
-        path: "/",
-    });
+    res.setHeader("Cache-Control", "no-store");
+    res.removeHeader("ETag");
+    res.clearCookie("accessToken", cookieOptions_1.cookieOptions);
+    res.clearCookie("refreshToken", cookieOptions_1.cookieOptions);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: https_status_codes_1.httpsStatusCodes.OK,

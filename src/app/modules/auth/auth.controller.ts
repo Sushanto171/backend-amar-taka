@@ -1,5 +1,5 @@
-import { envVars } from "../../config/env.config";
 import { catchAsync } from "../../utils/catchAsync";
+import { cookieOptions } from "../../utils/cookieOptions";
 import { httpsStatusCodes } from "../../utils/https-status-codes";
 import { sendResponse } from "../../utils/sendResponse";
 import { setAuthCookie } from "../../utils/setToken";
@@ -29,18 +29,10 @@ const getNewAccessToken = catchAsync(async (req, res) => {
 });
 
 const logout = catchAsync(async (req, res) => {
-  res.clearCookie("accessToken", {
-    httpOnly: true,
-    sameSite: envVars.NODE_ENV === "production" ? "none" : "lax",
-    secure: true,
-    path: "/",
-  });
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-    sameSite: envVars.NODE_ENV === "production" ? "none" : "lax",
-    secure: true,
-    path: "/",
-  });
+  res.setHeader("Cache-Control", "no-store");
+  res.removeHeader("ETag");
+  res.clearCookie("accessToken", cookieOptions);
+  res.clearCookie("refreshToken", cookieOptions);
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
