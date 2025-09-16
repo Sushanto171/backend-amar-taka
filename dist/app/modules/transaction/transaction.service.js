@@ -19,10 +19,12 @@ const https_status_codes_1 = require("../../utils/https-status-codes");
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
 const auditLogs_interface_1 = require("../auditLogs/auditLogs.interface");
 const eventBus_1 = require("../event/eventBus");
+const settings_service_1 = require("../settings/settings.service");
 const user_model_1 = require("../user/user.model");
 const transaction_interface_1 = require("./transaction.interface");
 const transaction_model_1 = require("./transaction.model");
 const createTransaction = (req, payload, c_session) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     let session;
     let toUserInfo;
     let transaction;
@@ -41,8 +43,9 @@ const createTransaction = (req, payload, c_session) => __awaiter(void 0, void 0,
             toUserInfo = yield (0, checkToUserWithWallet_1.checkToUserWithWallet)(payload, session);
         }
         if (payload.type === transaction_interface_1.ITransactionType.P2P_TRANSFER) {
-            if (payload.amount < env_config_1.envVars.P2P.P2P_MINIUM_AMOUNT) {
-                throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.NOT_ACCEPTABLE, `Provide Minimum ${env_config_1.envVars.P2P.P2P_MINIUM_AMOUNT} amount for send money.`);
+            if (payload.amount <
+                (((_a = settings_service_1.systemConfig === null || settings_service_1.systemConfig === void 0 ? void 0 : settings_service_1.systemConfig.sendMoney) === null || _a === void 0 ? void 0 : _a.min) || env_config_1.envVars.P2P.P2P_MINIUM_AMOUNT)) {
+                throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.NOT_ACCEPTABLE, `Provide Minimum ${((_b = settings_service_1.systemConfig === null || settings_service_1.systemConfig === void 0 ? void 0 : settings_service_1.systemConfig.sendMoney) === null || _b === void 0 ? void 0 : _b.min) || env_config_1.envVars.P2P.P2P_MINIUM_AMOUNT} amount for send money.`);
             }
         }
         const transPayload = {
@@ -110,13 +113,13 @@ const getAllTransactions = (query) => __awaiter(void 0, void 0, void 0, function
     const queryBuilder = new QueryBuilder_1.QueryBuilder(transaction_model_1.Transaction.find(), query);
     const transaction = queryBuilder
         .filter()
-        .search(["phone"])
+        .search(["sender", "receiver"])
         .fields()
         .sort()
         .paginate();
     const [trans, meta] = yield Promise.all([
         transaction.build(),
-        transaction.getMeta(),
+        transaction.getMeta(true),
     ]);
     return { trans, meta };
 });

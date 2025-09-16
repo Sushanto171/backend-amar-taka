@@ -13,6 +13,8 @@ var IAuditStatus;
     IAuditStatus["ON_HOLD"] = "ON_HOLD";
     IAuditStatus["VERIFIED"] = "VERIFIED";
     IAuditStatus["REJECTED"] = "REJECTED";
+    IAuditStatus["ACTIVE"] = "ACTIVE";
+    IAuditStatus["INACTIVE"] = "INACTIVE";
 })(IAuditStatus || (exports.IAuditStatus = IAuditStatus = {}));
 var IAuditActionType;
 (function (IAuditActionType) {
@@ -27,4 +29,5 @@ var IAuditActionType;
     IAuditActionType["REGISTRATION"] = "REGISTRATION";
     IAuditActionType["REGISTRATION_USER"] = "REGISTRATION_USER";
     IAuditActionType["REGISTRATION_AGENT"] = "REGISTRATION_AGENT";
+    IAuditActionType["BONUS"] = "BONUS";
 })(IAuditActionType || (exports.IAuditActionType = IAuditActionType = {}));

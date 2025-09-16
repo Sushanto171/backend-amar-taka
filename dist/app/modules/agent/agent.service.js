@@ -176,6 +176,22 @@ const verifyAgent = (req) => __awaiter(void 0, void 0, void 0, function* () {
                 },
             });
         }
+        if (!payload.kycStatus && payload.status) {
+            yield agent_model_1.Agent.findByIdAndUpdate(agentId, { status: payload.status }, { session });
+            eventBus_1.eventBus.emit("log", {
+                req,
+                payload: {
+                    action: auditLogs_interface_1.IAuditActionType.REGISTRATION_AGENT,
+                    actor: req.user.userid,
+                    targetUser: user === null || user === void 0 ? void 0 : user._id,
+                    status: payload.status,
+                    metadata: {
+                        message: "Agent registration rejected.",
+                        agentId: new mongoose_1.default.Types.ObjectId(agentId),
+                    },
+                },
+            });
+        }
         yield session.commitTransaction();
         return agent;
     }
@@ -209,7 +225,10 @@ const allAgents = (query) => __awaiter(void 0, void 0, void 0, function* () {
         .sort()
         .paginate()
         .search(["kycStatus"]);
-    const [agents, meta] = yield Promise.all([agent.build(), agent.getMeta()]);
+    const [agents, meta] = yield Promise.all([
+        agent.build().populate("wallet", "revenue").populate("user", "name phone"),
+        agent.getMeta(),
+    ]);
     return { agents, meta };
 });
 exports.agentService = {

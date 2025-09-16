@@ -6,6 +6,6 @@ const checkAuth_1 = require("../../middlewares/checkAuth");
 const user_interface_1 = require("../user/user.interface");
 const auditLogs_controller_1 = require("./auditLogs.controller");
 const router = (0, express_1.Router)();
-router.get("/", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), auditLogs_controller_1.auditController.getLogs);
-router.get("/:logId", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), auditLogs_controller_1.auditController.getSingleLog);
+router.get("/", (0, checkAuth_1.checkAuth)([...Object.values(user_interface_1.IRole)]), auditLogs_controller_1.auditController.getLogs);
+router.get("/:logId", (0, checkAuth_1.checkAuth)([...Object.values(user_interface_1.IRole)]), auditLogs_controller_1.auditController.getSingleLog);
 exports.AuditLogsRoutes = router;

@@ -4,7 +4,8 @@ exports.Commission = void 0;
 const mongoose_1 = require("mongoose");
 const commissionSchema = new mongoose_1.Schema({
     user: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
-    fee: { type: Number, min: 0, default: 0 },
+    transaction: { type: mongoose_1.Schema.Types.ObjectId, ref: "Transaction" },
+    commission: { type: Number, min: 0, default: 0 },
 }, {
     versionKey: false,
     timestamps: true,

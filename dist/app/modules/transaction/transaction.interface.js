@@ -8,6 +8,7 @@ var ITransactionType;
     ITransactionType["P2P_TRANSFER"] = "SEND_MONEY";
     ITransactionType["MERCHANT_PAYMENT"] = "MERCHANT_PAYMENT";
     ITransactionType["BILL_PAYMENT"] = "BILL_PAYMENT";
+    ITransactionType["Bonus"] = "BONUS";
 })(ITransactionType || (exports.ITransactionType = ITransactionType = {}));
 var ITransactionStatus;
 (function (ITransactionStatus) {

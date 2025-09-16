@@ -24,41 +24,35 @@ const getUserStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0
     });
 }));
 const getAgentStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const info = yield stats_service_1.statsService.getAgentStats();
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: https_status_codes_1.httpsStatusCodes.OK,
-        message: "Retrieved user stats successfully.",
-        data: null,
+        message: "Retrieved Agents stats successfully.",
+        data: info,
     });
 }));
 const getTransactionStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const info = yield stats_service_1.statsService.getTransactionStats();
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: https_status_codes_1.httpsStatusCodes.OK,
-        message: "Retrieved user stats successfully.",
-        data: null,
+        message: "Retrieved Transaction stats successfully.",
+        data: info,
     });
 }));
-const getCommissionStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getSystemStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const info = yield stats_service_1.statsService.getSystemStats(req.user.wallet);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: https_status_codes_1.httpsStatusCodes.OK,
-        message: "Retrieved user stats successfully.",
-        data: null,
-    });
-}));
-const getAuditLogStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    (0, sendResponse_1.sendResponse)(res, {
-        success: true,
-        statusCode: https_status_codes_1.httpsStatusCodes.OK,
-        message: "Retrieved user stats successfully.",
-        data: null,
+        message: "Retrieved system stats successfully.",
+        data: info,
     });
 }));
 exports.statsController = {
     getUserStats,
     getAgentStats,
     getTransactionStats,
-    getCommissionStats,
-    getAuditLogStats,
+    getSystemStats,
 };

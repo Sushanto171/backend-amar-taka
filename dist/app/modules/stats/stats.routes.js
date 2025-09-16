@@ -7,4 +7,7 @@ const user_interface_1 = require("../user/user.interface");
 const stats_controller_1 = require("./stats.controller");
 const router = (0, express_1.Router)();
 router.get("/user", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), stats_controller_1.statsController.getUserStats);
+router.get("/agent", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), stats_controller_1.statsController.getAgentStats);
+router.get("/transaction", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), stats_controller_1.statsController.getTransactionStats);
+router.get("/system", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), stats_controller_1.statsController.getSystemStats);
 exports.StatRoutes = router;

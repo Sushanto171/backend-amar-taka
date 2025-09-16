@@ -17,6 +17,7 @@ const app_1 = require("./app");
 const env_config_1 = require("./app/config/env.config");
 const redis_config_1 = require("./app/config/redis.config");
 const seedAdmin_1 = require("./app/utils/seedAdmin");
+const seedSettings_1 = require("./app/utils/seedSettings");
 let server;
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -44,7 +45,8 @@ process.on("uncaughtException", () => {
         });
     }
 });
-process.on("unhandledRejection", () => {
+process.on("unhandledRejection", (error) => {
+    console.log("unhandled", error);
     if (server) {
         server.close(() => {
             process.exit(1);
@@ -54,5 +56,6 @@ process.on("unhandledRejection", () => {
 (() => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, redis_config_1.connectRedis)();
     yield startServer();
+    yield (0, seedSettings_1.seedSettings)();
     yield (0, seedAdmin_1.seedAdmin)();
 }))();

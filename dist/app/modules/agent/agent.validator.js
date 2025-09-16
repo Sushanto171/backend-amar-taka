@@ -47,6 +47,6 @@ exports.agentUpdateZodSchema = zod_1.z.object({
         .optional(),
 });
 exports.agentStatusZodSchema = zod_1.z.object({
-    kycStatus: zod_1.z.enum(Object.values(agent_interface_1.IKYCStatus)),
+    kycStatus: zod_1.z.enum(Object.values(agent_interface_1.IKYCStatus)).optional(),
     status: zod_1.z.enum(Object.values(agent_interface_1.IAgentStatus)).optional(),
 });

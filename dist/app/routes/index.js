@@ -7,6 +7,7 @@ const auditLogs_routes_1 = require("../modules/auditLogs/auditLogs.routes");
 const auth_routes_1 = require("../modules/auth/auth.routes");
 const commission_routes_1 = require("../modules/commission/commission.routes");
 const otp_routes_1 = require("../modules/otp/otp.routes");
+const settings_routes_1 = require("../modules/settings/settings.routes");
 const stats_routes_1 = require("../modules/stats/stats.routes");
 const transaction_routes_1 = require("../modules/transaction/transaction.routes");
 const user_routes_1 = require("../modules/user/user.routes");
@@ -48,6 +49,10 @@ const moduleRoutes = [
     {
         path: "/stats",
         router: stats_routes_1.StatRoutes,
+    },
+    {
+        path: "/settings",
+        router: settings_routes_1.SettingsRoutes,
     },
 ];
 moduleRoutes.forEach((module) => exports.router.use(module.path, module.router));

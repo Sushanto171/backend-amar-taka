@@ -30,7 +30,7 @@ const getLogs = (query) => __awaiter(void 0, void 0, void 0, function* () {
     const queryBuilder = new QueryBuilder_1.QueryBuilder(auditLogs_model_1.AuditLogs.find(), query);
     const auditLog = queryBuilder.filter().fields().sort().paginate();
     const [logs, meta] = yield Promise.all([
-        auditLog.build(),
+        auditLog.build().populate("actor", "name phone"),
         auditLog.getMeta(),
     ]);
     return { logs, meta };

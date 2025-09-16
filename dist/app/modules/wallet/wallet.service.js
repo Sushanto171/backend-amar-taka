@@ -80,6 +80,7 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
     session.startTransaction();
     let transaction;
     const agentWallet = req.user.wallet;
+    const userId = req.user.userId;
     try {
         transaction = yield (0, validateTransactionBeforeProcess_1.validateTransactionBeforeProcess)(req, session, transaction_interface_1.ITransactionType.CASH_IN);
         if (transaction.amount > agentWallet.balance) {
@@ -108,19 +109,21 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
         });
         //create agent commission
         eventBus_1.eventBus.emit("commission", {
-            fee: calculation.agentRevenue,
+            commission: calculation.agentRevenue,
             user: req.user.userId,
+            transaction: transaction._id,
         });
         // increment system revenue
-        const system = yield (0, updateSystemWallet_1.updateSystemWallet)({
+        const systemWallet = yield (0, updateSystemWallet_1.updateSystemWallet)({
             revenue: calculation.systemRevenue,
             session,
         });
         //create system commission
-        if (system) {
+        if (systemWallet) {
             eventBus_1.eventBus.emit("commission", {
-                fee: calculation.systemRevenue,
-                user: system.user,
+                commission: calculation.systemRevenue,
+                user: systemWallet.user,
+                transaction: transaction._id,
             });
         }
         yield session.commitTransaction();
@@ -129,7 +132,7 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
             payload: {
                 action: auditLogs_interface_1.IAuditActionType.CASH_IN,
                 targetWallet: transaction.toWallet,
-                actor: agentWallet._id,
+                actor: userId,
                 actorWallet: transaction.fromWallet,
                 status: auditLogs_interface_1.IAuditStatus.SUCCESS,
                 metadata: {
@@ -159,7 +162,7 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
                 targetWallet: transaction
                     ? transaction.toWallet
                     : undefined,
-                actor: agentWallet.user._id,
+                actor: userId,
                 actorWallet: agentWallet._id,
                 status: auditLogs_interface_1.IAuditStatus.FAILED,
                 metadata: {
@@ -185,6 +188,7 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
     session.startTransaction();
     let transaction;
     const userWallet = req.user.wallet;
+    const userId = req.user.userId;
     try {
         transaction = yield (0, validateTransactionBeforeProcess_1.validateTransactionBeforeProcess)(req, session, transaction_interface_1.ITransactionType.CASH_OUT);
         const calculation = (0, calculatePercent_1.calculatePercent)({
@@ -214,19 +218,21 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
         });
         // create agent commission
         eventBus_1.eventBus.emit("commission", {
-            fee: calculation.agentRevenue,
+            commission: calculation.agentRevenue,
             user: transaction.toWallet,
+            transaction: transaction._id,
         });
         // increment system revenue
-        const system = yield (0, updateSystemWallet_1.updateSystemWallet)({
+        const systemWallet = yield (0, updateSystemWallet_1.updateSystemWallet)({
             revenue: calculation.systemRevenue,
             session,
         });
         //create system commission
-        if (system) {
+        if (systemWallet) {
             eventBus_1.eventBus.emit("commission", {
-                fee: calculation.systemRevenue,
-                user: system.user,
+                commission: calculation.systemRevenue,
+                user: systemWallet.user,
+                transaction: transaction._id,
             });
         }
         yield session.commitTransaction();
@@ -236,7 +242,7 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
             payload: {
                 action: auditLogs_interface_1.IAuditActionType.CASH_OUT,
                 targetWallet: transaction.toWallet,
-                actor: userWallet._id,
+                actor: userId,
                 actorWallet: transaction.fromWallet,
                 status: auditLogs_interface_1.IAuditStatus.SUCCESS,
                 metadata: {
@@ -266,7 +272,7 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
                 targetWallet: transaction
                     ? transaction.toWallet
                     : undefined,
-                actor: userWallet.user._id,
+                actor: userId,
                 actorWallet: userWallet._id,
                 status: auditLogs_interface_1.IAuditStatus.FAILED,
                 metadata: {
@@ -292,6 +298,7 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
     session.startTransaction();
     let transaction;
     const fromWallet = req.user.wallet;
+    const userId = req.user.userId;
     try {
         transaction = yield (0, validateTransactionBeforeProcess_1.validateTransactionBeforeProcess)(req, session, transaction_interface_1.ITransactionType.P2P_TRANSFER);
         const calculation = (0, calculatePercent_1.calculatePercent)({
@@ -319,15 +326,16 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
             session: session,
         });
         // increment system wallet revenue
-        const system = yield (0, updateSystemWallet_1.updateSystemWallet)({
+        const systemWallet = yield (0, updateSystemWallet_1.updateSystemWallet)({
             revenue: calculation.systemRevenue,
             session,
         });
         //create system commission
-        if (system) {
+        if (systemWallet) {
             eventBus_1.eventBus.emit("commission", {
-                fee: calculation.systemRevenue,
-                user: system.user,
+                commission: calculation.systemRevenue,
+                user: systemWallet.user,
+                transaction: transaction._id,
             });
         }
         yield session.commitTransaction();
@@ -337,7 +345,7 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
             payload: {
                 action: auditLogs_interface_1.IAuditActionType.P2P_TRANSFER,
                 targetWallet: transaction.toWallet,
-                actor: fromWallet._id,
+                actor: userId,
                 actorWallet: transaction.fromWallet,
                 status: auditLogs_interface_1.IAuditStatus.SUCCESS,
                 metadata: {
@@ -367,7 +375,7 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
                 targetWallet: transaction
                     ? transaction.toWallet
                     : undefined,
-                actor: fromWallet.user._id,
+                actor: userId,
                 actorWallet: fromWallet._id,
                 status: auditLogs_interface_1.IAuditStatus.FAILED,
                 metadata: {

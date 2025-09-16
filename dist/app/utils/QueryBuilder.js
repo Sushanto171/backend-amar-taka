@@ -70,7 +70,8 @@ class QueryBuilder {
         return __awaiter(this, arguments, void 0, function* (condition = false) {
             var _a, _b;
             const queryConditions = this.modelQuery.getFilter();
-            const totalDocuments = yield this.modelQuery.model.countDocuments(condition ? queryConditions : {});
+            const hasConditions = Object.values(queryConditions).length > 0;
+            const totalDocuments = yield this.modelQuery.model.countDocuments(condition || hasConditions ? queryConditions : {});
             const page = Number((_a = this.query) === null || _a === void 0 ? void 0 : _a.page) || 1;
             const limit = Number((_b = this.query) === null || _b === void 0 ? void 0 : _b.limit) || 10;
             const totalPages = Math.ceil(totalDocuments / limit);

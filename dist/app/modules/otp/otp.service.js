@@ -18,6 +18,7 @@ const generateOTP_1 = require("../../utils/generateOTP");
 const https_status_codes_1 = require("../../utils/https-status-codes");
 const updateSystemWallet_1 = require("../../utils/updateSystemWallet");
 const eventBus_1 = require("../event/eventBus");
+const settings_service_1 = require("../settings/settings.service");
 const transaction_interface_1 = require("../transaction/transaction.interface");
 const user_model_1 = require("../user/user.model");
 const wallet_model_1 = require("../wallet/wallet.model");
@@ -36,6 +37,7 @@ const sendVerifyOTP = (phone) => __awaiter(void 0, void 0, void 0, function* () 
     return { otp };
 });
 const verifyOTP = (req) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
     const { otp, phone } = req.body;
     const isUserExist = yield user_model_1.User.findOne({ phone });
     if (!isUserExist) {
@@ -61,20 +63,20 @@ const verifyOTP = (req) => __awaiter(void 0, void 0, void 0, function* () {
     yield isUserExist.save({ session });
     const system = yield (0, updateSystemWallet_1.updateSystemWallet)({
         session,
-        amount: env_config_1.envVars.USER.USER_WELCOME_BONUS,
+        amount: ((_a = settings_service_1.systemConfig === null || settings_service_1.systemConfig === void 0 ? void 0 : settings_service_1.systemConfig.user) === null || _a === void 0 ? void 0 : _a.welcomeBonus) || env_config_1.envVars.USER.USER_WELCOME_BONUS,
     });
     yield wallet_model_1.Wallet.findByIdAndUpdate(isUserExist.wallet, {
-        balance: env_config_1.envVars.USER.USER_WELCOME_BONUS,
+        balance: ((_b = settings_service_1.systemConfig === null || settings_service_1.systemConfig === void 0 ? void 0 : settings_service_1.systemConfig.user) === null || _b === void 0 ? void 0 : _b.welcomeBonus) || env_config_1.envVars.USER.USER_WELCOME_BONUS,
     }, { session });
     const transactionPayload = {
-        amount: env_config_1.envVars.USER.USER_WELCOME_BONUS, //paisa
+        amount: ((_c = settings_service_1.systemConfig === null || settings_service_1.systemConfig === void 0 ? void 0 : settings_service_1.systemConfig.user) === null || _c === void 0 ? void 0 : _c.welcomeBonus) || env_config_1.envVars.USER.USER_WELCOME_BONUS, //paisa
         fromWallet: system === null || system === void 0 ? void 0 : system._id,
         toWallet: isUserExist.wallet,
         receiver: isUserExist.phone,
         sender: env_config_1.envVars.ADMIN.ADMIN_PHONE,
         fee: 0,
         status: transaction_interface_1.ITransactionStatus.SUCCESS,
-        type: transaction_interface_1.ITransactionType.CASH_IN,
+        type: transaction_interface_1.ITransactionType.Bonus,
         reference: `welcome-bonus-${Date.now()}`,
     };
     eventBus_1.eventBus.emit("transaction", Object.assign(Object.assign({}, transactionPayload), { req }));
