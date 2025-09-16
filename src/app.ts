@@ -16,10 +16,11 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://amar-taka.vercel.app",
 ];
-const corsOptionDelegate = (
+const corsOptionsDelegate = (
   reqOrigins: string | undefined,
   callback: (err: Error | null, allow?: boolean) => void
 ) => {
+  console.log({ reqOrigins });
   if (reqOrigins && allowedOrigins.includes(reqOrigins))
     return callback(null, true);
   else callback(new Error(`CORS policy: Origin ${origin} not allowed`), false);
@@ -28,15 +29,7 @@ const corsOptionDelegate = (
 app.use(
   cors({
     credentials: true,
-    origin: corsOptionDelegate,
-  })
-);
-
-app.options(
-  "*",
-  cors({
-    credentials: true,
-    origin: corsOptionDelegate,
+    origin: corsOptionsDelegate,
   })
 );
 
