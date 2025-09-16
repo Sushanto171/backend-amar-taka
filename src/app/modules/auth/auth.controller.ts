@@ -31,13 +31,15 @@ const getNewAccessToken = catchAsync(async (req, res) => {
 const logout = catchAsync(async (req, res) => {
   res.clearCookie("accessToken", {
     httpOnly: true,
-    sameSite: "lax",
-    secure: envVars.NODE_ENV === "production",
+    sameSite: envVars.NODE_ENV === "production" ? "none" : "lax",
+    secure: true,
+    path: "/",
   });
   res.clearCookie("refreshToken", {
     httpOnly: true,
-    sameSite: "lax",
-    secure: envVars.NODE_ENV === "production",
+    sameSite: envVars.NODE_ENV === "production" ? "none" : "lax",
+    secure: true,
+    path: "/",
   });
   sendResponse(res, {
     success: true,

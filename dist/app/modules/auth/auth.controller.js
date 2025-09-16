@@ -40,13 +40,15 @@ const getNewAccessToken = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(v
 const logout = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.clearCookie("accessToken", {
         httpOnly: true,
-        sameSite: "lax",
-        secure: env_config_1.envVars.NODE_ENV === "production",
+        sameSite: env_config_1.envVars.NODE_ENV === "production" ? "none" : "lax",
+        secure: true,
+        path: "/",
     });
     res.clearCookie("refreshToken", {
         httpOnly: true,
-        sameSite: "lax",
-        secure: env_config_1.envVars.NODE_ENV === "production",
+        sameSite: env_config_1.envVars.NODE_ENV === "production" ? "none" : "lax",
+        secure: true,
+        path: "/",
     });
     (0, sendResponse_1.sendResponse)(res, {
         success: true,

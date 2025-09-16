@@ -8,6 +8,7 @@ const setAuthCookie = (res, token) => {
             httpOnly: true,
             secure: true,
             sameSite: env_config_1.envVars.NODE_ENV === "production" ? "none" : "lax",
+            path: "/",
         });
     }
     if (token.refreshToken) {
@@ -15,6 +16,7 @@ const setAuthCookie = (res, token) => {
             httpOnly: true,
             secure: true,
             sameSite: env_config_1.envVars.NODE_ENV === "production" ? "none" : "lax",
+            path: "/",
         });
     }
 };
