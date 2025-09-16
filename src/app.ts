@@ -12,12 +12,34 @@ import { router } from "./app/routes";
 
 export const app: Application = express();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://amar-taka.vercel.app",
+];
+const corsOptionDelegate = (
+  reqOrigins: string | undefined,
+  callback: (err: Error | null, allow?: boolean) => void
+) => {
+  if (reqOrigins && allowedOrigins.includes(reqOrigins))
+    return callback(null, true);
+  else callback(new Error(`CORS policy: Origin ${origin} not allowed`), false);
+};
+
 app.use(
   cors({
     credentials: true,
-    origin: ["http://localhost:3000", "https://amar-taka.vercel.app"],
+    origin: corsOptionDelegate,
   })
 );
+
+app.options(
+  "*",
+  cors({
+    credentials: true,
+    origin: corsOptionDelegate,
+  })
+);
+
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api/v1", router);
