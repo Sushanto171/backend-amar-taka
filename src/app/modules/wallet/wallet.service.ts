@@ -19,6 +19,7 @@ import {
 import { eventBus } from "../event/eventBus";
 import {
   ITransaction,
+  ITransactionStatus,
   ITransactionType,
 } from "../transaction/transaction.interface";
 import { IUser } from "../user/user.interface";
@@ -101,6 +102,8 @@ const deposit = async (req: Request) => {
     );
 
     if (transaction.amount > agentWallet.balance) {
+      transaction.status = ITransactionStatus.FAILED;
+      await transaction.save({ session });
       throw new AppError(httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
     }
 
@@ -234,6 +237,8 @@ const withdraw = async (req: Request) => {
 
     const costAmount = transaction.amount + (calculation.deductFee as number);
     if (userWallet.balance < costAmount) {
+      transaction.status = ITransactionStatus.FAILED;
+      await transaction.save({ session });
       throw new AppError(httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
     }
 
@@ -365,6 +370,8 @@ const P2P = async (req: Request) => {
 
     const costAmount = transaction.amount + (calculation.deductFee as number);
     if (fromWallet.balance < costAmount) {
+      transaction.status = ITransactionStatus.FAILED;
+      await transaction.save({ session });
       throw new AppError(httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
     }
 
