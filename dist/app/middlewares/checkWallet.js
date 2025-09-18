@@ -11,6 +11,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkWallet = void 0;
 const AppError_1 = require("../errorHelpers/AppError");
+const auditLogs_interface_1 = require("../modules/auditLogs/auditLogs.interface");
+const eventBus_1 = require("../modules/event/eventBus");
+const transaction_interface_1 = require("../modules/transaction/transaction.interface");
+const transaction_model_1 = require("../modules/transaction/transaction.model");
 const user_interface_1 = require("../modules/user/user.interface");
 const user_model_1 = require("../modules/user/user.model");
 const bcryptjs_1 = require("../utils/bcryptjs");
@@ -33,6 +37,25 @@ const checkWallet = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         }
         const matchedPassword = yield (0, bcryptjs_1.comparePassword)(isUserExist.password, plainPassword);
         if (!matchedPassword) {
+            const transactionDoc = yield transaction_model_1.Transaction.findByIdAndUpdate(req.body.transactionId, {
+                status: transaction_interface_1.ITransactionStatus.FAILED,
+                metaData: { message: "Invalid password" },
+            }, { new: true, runValidators: true });
+            const transaction = transactionDoc === null || transactionDoc === void 0 ? void 0 : transactionDoc.toObject();
+            eventBus_1.eventBus.emit("log", {
+                req,
+                payload: {
+                    action: transaction === null || transaction === void 0 ? void 0 : transaction.type,
+                    targetWallet: transaction === null || transaction === void 0 ? void 0 : transaction.toWallet,
+                    actor: userId,
+                    actorWallet: transaction === null || transaction === void 0 ? void 0 : transaction.fromWallet,
+                    status: auditLogs_interface_1.IAuditStatus.FAILED,
+                    metadata: {
+                        amount: transaction === null || transaction === void 0 ? void 0 : transaction.amount,
+                        message: "Invalid Password",
+                    },
+                },
+            });
             throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "Invalid password!");
         }
         req.user = {

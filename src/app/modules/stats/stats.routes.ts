@@ -14,4 +14,10 @@ router.get(
 );
 router.get("/system", checkAuth([IRole.ADMIN]), statsController.getSystemStats);
 
+router.get(
+  "/agent/me",
+  checkAuth([IRole.AGENT]),
+  statsController.getSingleAgentStats
+);
+
 export const StatRoutes = router;

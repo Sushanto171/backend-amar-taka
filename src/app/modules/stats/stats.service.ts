@@ -245,9 +245,97 @@ const getSystemStats = async (walletId: string) => {
   return { amount: amount?.balance, revenue: amount?.revenue };
 };
 
+const getSingleAgentStats = async (agentId: string, walletId: string) => {
+  const amountPromise = Wallet.findById(walletId, { balance: 1, revenue: 1 });
+  const totalTransactionPromise = Transaction.countDocuments({
+    $or: [{ toWallet: walletId }, { fromWallet: walletId }],
+  });
+
+  const typeByTransactionPromise = Transaction.aggregate([
+    {
+      $match: { $or: [{ toWallet: walletId }, { fromWallet: walletId }] },
+    },
+    {
+      $group: {
+        _id: "$type",
+        count: { $sum: 1 },
+        amount: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const statusByTransactionPromise = Transaction.aggregate([
+    {
+      $match: { $or: [{ toWallet: walletId }, { fromWallet: walletId }] },
+    },
+    {
+      $group: {
+        _id: "$status",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const newTransactionInLast7DaysPromise = Transaction.countDocuments({
+    $and: [
+      {
+        createdAt: { $gte: sevenDaysAgo },
+      },
+      { $or: [{ toWallet: walletId }, { fromWallet: walletId }] },
+    ],
+  });
+  const newTransactionInLast30DaysPromise = Transaction.countDocuments({
+    $and: [
+      {
+        createdAt: { $gte: thirtyDaysAgo },
+      },
+      { $or: [{ toWallet: walletId }, { fromWallet: walletId }] },
+    ],
+  });
+
+  const last7DaysTransactionsPromise = Transaction.find(
+    {
+      $and: [
+        { createdAt: { $gte: sevenDaysAgo } },
+        { $or: [{ toWallet: walletId }, { fromWallet: walletId }] },
+      ],
+    },
+    { amount: 1, type: 1, status: 1, _id: 0, createdAt: 1 }
+  );
+
+  const [
+    amount,
+    totalTransaction,
+    typeByTransaction,
+    statusByTransaction,
+    newTransactionInLast7Days,
+    newTransactionInLast30Days,
+    last7DaysTransactions,
+  ] = await Promise.all([
+    amountPromise,
+    totalTransactionPromise,
+    typeByTransactionPromise,
+    statusByTransactionPromise,
+    newTransactionInLast7DaysPromise,
+    newTransactionInLast30DaysPromise,
+    last7DaysTransactionsPromise,
+  ]);
+  return {
+    totalAmount: amount?.balance,
+    revenue: amount?.revenue,
+    totalTransaction,
+    typeByTransaction,
+    statusByTransaction,
+    newTransactionInLast7Days,
+    newTransactionInLast30Days,
+    last7DaysTransactions,
+  };
+};
+
 export const statsService = {
   getUserStats,
   getAgentStats,
   getTransactionStats,
   getSystemStats,
+  getSingleAgentStats,
 };

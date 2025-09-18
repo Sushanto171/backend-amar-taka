@@ -22,6 +22,7 @@ const validateTransactionBeforeProcess_1 = require("../../utils/validateTransact
 const auditLogs_interface_1 = require("../auditLogs/auditLogs.interface");
 const eventBus_1 = require("../event/eventBus");
 const transaction_interface_1 = require("../transaction/transaction.interface");
+const transaction_model_1 = require("../transaction/transaction.model");
 const user_model_1 = require("../user/user.model");
 const wallet_interface_1 = require("./wallet.interface");
 const wallet_model_1 = require("./wallet.model");
@@ -84,8 +85,6 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         transaction = yield (0, validateTransactionBeforeProcess_1.validateTransactionBeforeProcess)(req, session, transaction_interface_1.ITransactionType.CASH_IN);
         if (transaction.amount > agentWallet.balance) {
-            transaction.status = transaction_interface_1.ITransactionStatus.FAILED;
-            yield transaction.save({ session });
             throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
         }
         const calculation = (0, calculatePercent_1.calculatePercent)({
@@ -157,6 +156,10 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         yield session.abortTransaction();
+        yield transaction_model_1.Transaction.findByIdAndUpdate(req.body.transactionId, {
+            status: transaction_interface_1.ITransactionStatus.FAILED,
+            metaData: { message: error.message },
+        });
         eventBus_1.eventBus.emit("log", {
             req,
             payload: {
@@ -199,8 +202,6 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
         });
         const costAmount = transaction.amount + calculation.deductFee;
         if (userWallet.balance < costAmount) {
-            transaction.status = transaction_interface_1.ITransactionStatus.FAILED;
-            yield transaction.save({ session });
             throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
         }
         //update transaction status
@@ -208,7 +209,7 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
         // update user wallet
         yield (0, updateTransactionBalance_1.updateTransactionBalance)({
             walletId: transaction.fromWallet,
-            balance: transaction.amount + calculation.deductFee,
+            balance: costAmount,
             session: session,
             incType: updateTransactionBalance_1.IncType.decrement,
         });
@@ -269,6 +270,10 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         yield session.abortTransaction();
+        yield transaction_model_1.Transaction.findByIdAndUpdate(req.body.transactionId, {
+            status: transaction_interface_1.ITransactionStatus.FAILED,
+            metaData: { message: error.message },
+        });
         eventBus_1.eventBus.emit("log", {
             req,
             payload: {
@@ -311,8 +316,6 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
         });
         const costAmount = transaction.amount + calculation.deductFee;
         if (fromWallet.balance < costAmount) {
-            transaction.status = transaction_interface_1.ITransactionStatus.FAILED;
-            yield transaction.save({ session });
             throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
         }
         //update transaction status
@@ -374,6 +377,10 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         yield session.abortTransaction();
+        yield transaction_model_1.Transaction.findByIdAndUpdate(req.body.transactionId, {
+            status: transaction_interface_1.ITransactionStatus.FAILED,
+            metaData: { message: error.message },
+        });
         eventBus_1.eventBus.emit("log", {
             req,
             payload: {

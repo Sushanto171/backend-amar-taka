@@ -10,4 +10,5 @@ router.get("/user", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), 
 router.get("/agent", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), stats_controller_1.statsController.getAgentStats);
 router.get("/transaction", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), stats_controller_1.statsController.getTransactionStats);
 router.get("/system", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.ADMIN]), stats_controller_1.statsController.getSystemStats);
+router.get("/agent/me", (0, checkAuth_1.checkAuth)([user_interface_1.IRole.AGENT]), stats_controller_1.statsController.getSingleAgentStats);
 exports.StatRoutes = router;

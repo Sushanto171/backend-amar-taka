@@ -50,9 +50,21 @@ const getSystemStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void
         data: info,
     });
 }));
+const getSingleAgentStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const agentId = req.user.userId;
+    const walletId = req.user.wallet;
+    const info = yield stats_service_1.statsService.getSingleAgentStats(agentId, walletId);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: https_status_codes_1.httpsStatusCodes.OK,
+        message: "Retrieved agent stats successfully.",
+        data: info,
+    });
+}));
 exports.statsController = {
     getUserStats,
     getAgentStats,
     getTransactionStats,
     getSystemStats,
+    getSingleAgentStats,
 };

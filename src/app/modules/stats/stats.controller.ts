@@ -39,10 +39,22 @@ const getSystemStats = catchAsync(async (req, res) => {
     data: info,
   });
 });
+const getSingleAgentStats = catchAsync(async (req, res) => {
+  const agentId = req.user.userId;
+  const walletId = req.user.wallet;
+  const info = await statsService.getSingleAgentStats(agentId, walletId);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpsStatusCodes.OK,
+    message: "Retrieved agent stats successfully.",
+    data: info,
+  });
+});
 
 export const statsController = {
   getUserStats,
   getAgentStats,
   getTransactionStats,
   getSystemStats,
+  getSingleAgentStats,
 };

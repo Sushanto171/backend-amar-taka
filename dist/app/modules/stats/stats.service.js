@@ -218,9 +218,80 @@ const getSystemStats = (walletId) => __awaiter(void 0, void 0, void 0, function*
     const amount = yield wallet_model_1.Wallet.findById(walletId, { balance: 1, revenue: 1 });
     return { amount: amount === null || amount === void 0 ? void 0 : amount.balance, revenue: amount === null || amount === void 0 ? void 0 : amount.revenue };
 });
+const getSingleAgentStats = (agentId, walletId) => __awaiter(void 0, void 0, void 0, function* () {
+    const amountPromise = wallet_model_1.Wallet.findById(walletId, { balance: 1, revenue: 1 });
+    const totalTransactionPromise = transaction_model_1.Transaction.countDocuments({
+        $or: [{ toWallet: walletId }, { fromWallet: walletId }],
+    });
+    const typeByTransactionPromise = transaction_model_1.Transaction.aggregate([
+        {
+            $match: { $or: [{ toWallet: walletId }, { fromWallet: walletId }] },
+        },
+        {
+            $group: {
+                _id: "$type",
+                count: { $sum: 1 },
+                amount: { $sum: "$amount" },
+            },
+        },
+    ]);
+    const statusByTransactionPromise = transaction_model_1.Transaction.aggregate([
+        {
+            $match: { $or: [{ toWallet: walletId }, { fromWallet: walletId }] },
+        },
+        {
+            $group: {
+                _id: "$status",
+                count: { $sum: 1 },
+            },
+        },
+    ]);
+    const newTransactionInLast7DaysPromise = transaction_model_1.Transaction.countDocuments({
+        $and: [
+            {
+                createdAt: { $gte: sevenDaysAgo },
+            },
+            { $or: [{ toWallet: walletId }, { fromWallet: walletId }] },
+        ],
+    });
+    const newTransactionInLast30DaysPromise = transaction_model_1.Transaction.countDocuments({
+        $and: [
+            {
+                createdAt: { $gte: thirtyDaysAgo },
+            },
+            { $or: [{ toWallet: walletId }, { fromWallet: walletId }] },
+        ],
+    });
+    const last7DaysTransactionsPromise = transaction_model_1.Transaction.find({
+        $and: [
+            { createdAt: { $gte: sevenDaysAgo } },
+            { $or: [{ toWallet: walletId }, { fromWallet: walletId }] },
+        ],
+    }, { amount: 1, type: 1, status: 1, _id: 0, createdAt: 1 });
+    const [amount, totalTransaction, typeByTransaction, statusByTransaction, newTransactionInLast7Days, newTransactionInLast30Days, last7DaysTransactions,] = yield Promise.all([
+        amountPromise,
+        totalTransactionPromise,
+        typeByTransactionPromise,
+        statusByTransactionPromise,
+        newTransactionInLast7DaysPromise,
+        newTransactionInLast30DaysPromise,
+        last7DaysTransactionsPromise,
+    ]);
+    return {
+        totalAmount: amount === null || amount === void 0 ? void 0 : amount.balance,
+        revenue: amount === null || amount === void 0 ? void 0 : amount.revenue,
+        totalTransaction,
+        typeByTransaction,
+        statusByTransaction,
+        newTransactionInLast7Days,
+        newTransactionInLast30Days,
+        last7DaysTransactions,
+    };
+});
 exports.statsService = {
     getUserStats,
     getAgentStats,
     getTransactionStats,
     getSystemStats,
+    getSingleAgentStats,
 };

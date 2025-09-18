@@ -1,6 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "../errorHelpers/AppError";
 import { IAgent } from "../modules/agent/agent.interface";
+import {
+  IAuditActionType,
+  IAuditStatus,
+} from "../modules/auditLogs/auditLogs.interface";
+import { eventBus } from "../modules/event/eventBus";
+import { ITransactionStatus } from "../modules/transaction/transaction.interface";
+import { Transaction } from "../modules/transaction/transaction.model";
 import { IRole } from "../modules/user/user.interface";
 import { User } from "../modules/user/user.model";
 import { IWallet } from "../modules/wallet/wallet.interface";
@@ -36,6 +43,29 @@ export const checkWallet = async (
     );
 
     if (!matchedPassword) {
+      const transactionDoc = await Transaction.findByIdAndUpdate(
+        req.body.transactionId,
+        {
+          status: ITransactionStatus.FAILED,
+          metaData: { message: "Invalid password" },
+        },
+        { new: true, runValidators: true }
+      );
+      const transaction = transactionDoc?.toObject();
+      eventBus.emit("log", {
+        req,
+        payload: {
+          action: transaction?.type as unknown as IAuditActionType,
+          targetWallet: transaction?.toWallet,
+          actor: userId,
+          actorWallet: transaction?.fromWallet,
+          status: IAuditStatus.FAILED,
+          metadata: {
+            amount: transaction?.amount,
+            message: "Invalid Password",
+          },
+        },
+      });
       throw new AppError(httpsStatusCodes.BAD_REQUEST, "Invalid password!");
     }
 
