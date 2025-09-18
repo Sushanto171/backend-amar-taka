@@ -22,6 +22,7 @@ import {
   ITransactionStatus,
   ITransactionType,
 } from "../transaction/transaction.interface";
+import { Transaction } from "../transaction/transaction.model";
 import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { IWallet, IWalletType } from "./wallet.interface";
@@ -102,8 +103,6 @@ const deposit = async (req: Request) => {
     );
 
     if (transaction.amount > agentWallet.balance) {
-      transaction.status = ITransactionStatus.FAILED;
-      await transaction.save({ session });
       throw new AppError(httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
     }
 
@@ -188,6 +187,12 @@ const deposit = async (req: Request) => {
     return transaction;
   } catch (error: any) {
     await session.abortTransaction();
+
+    await Transaction.findByIdAndUpdate(req.body.transactionId, {
+      status: ITransactionStatus.FAILED,
+      metaData: { message: error.message },
+    });
+
     eventBus.emit("log", {
       req,
       payload: {
@@ -229,7 +234,6 @@ const withdraw = async (req: Request) => {
       session,
       ITransactionType.CASH_OUT
     );
-
     const calculation = calculatePercent({
       amount: transaction.amount,
       type: "WITHDRAW",
@@ -237,8 +241,6 @@ const withdraw = async (req: Request) => {
 
     const costAmount = transaction.amount + (calculation.deductFee as number);
     if (userWallet.balance < costAmount) {
-      transaction.status = ITransactionStatus.FAILED;
-      await transaction.save({ session });
       throw new AppError(httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
     }
 
@@ -252,7 +254,7 @@ const withdraw = async (req: Request) => {
     // update user wallet
     await updateTransactionBalance({
       walletId: transaction.fromWallet,
-      balance: transaction.amount + (calculation.deductFee as number),
+      balance: costAmount,
       session: session,
       incType: IncType.decrement,
     });
@@ -320,6 +322,10 @@ const withdraw = async (req: Request) => {
     return transaction;
   } catch (error: any) {
     await session.abortTransaction();
+    await Transaction.findByIdAndUpdate(req.body.transactionId, {
+      status: ITransactionStatus.FAILED,
+      metaData: { message: error.message },
+    });
 
     eventBus.emit("log", {
       req,
@@ -370,8 +376,6 @@ const P2P = async (req: Request) => {
 
     const costAmount = transaction.amount + (calculation.deductFee as number);
     if (fromWallet.balance < costAmount) {
-      transaction.status = ITransactionStatus.FAILED;
-      await transaction.save({ session });
       throw new AppError(httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
     }
 
@@ -443,6 +447,10 @@ const P2P = async (req: Request) => {
     return transaction;
   } catch (error: any) {
     await session.abortTransaction();
+    await Transaction.findByIdAndUpdate(req.body.transactionId, {
+      status: ITransactionStatus.FAILED,
+      metaData: { message: error.message },
+    });
 
     eventBus.emit("log", {
       req,

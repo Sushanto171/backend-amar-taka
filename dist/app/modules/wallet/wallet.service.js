@@ -84,6 +84,8 @@ const deposit = (req) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         transaction = yield (0, validateTransactionBeforeProcess_1.validateTransactionBeforeProcess)(req, session, transaction_interface_1.ITransactionType.CASH_IN);
         if (transaction.amount > agentWallet.balance) {
+            transaction.status = transaction_interface_1.ITransactionStatus.FAILED;
+            yield transaction.save({ session });
             throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
         }
         const calculation = (0, calculatePercent_1.calculatePercent)({
@@ -197,6 +199,8 @@ const withdraw = (req) => __awaiter(void 0, void 0, void 0, function* () {
         });
         const costAmount = transaction.amount + calculation.deductFee;
         if (userWallet.balance < costAmount) {
+            transaction.status = transaction_interface_1.ITransactionStatus.FAILED;
+            yield transaction.save({ session });
             throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
         }
         //update transaction status
@@ -307,6 +311,8 @@ const P2P = (req) => __awaiter(void 0, void 0, void 0, function* () {
         });
         const costAmount = transaction.amount + calculation.deductFee;
         if (fromWallet.balance < costAmount) {
+            transaction.status = transaction_interface_1.ITransactionStatus.FAILED;
+            yield transaction.save({ session });
             throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "Insufficient balance!");
         }
         //update transaction status
