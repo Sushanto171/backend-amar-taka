@@ -141,7 +141,7 @@ const getNewAccessToken = async (refreshToken: string) => {
 
 const changePassword = async (
   userId: string,
-  oldPassword: string,
+  currentPassword: string,
   newPassword: string
 ) => {
   const isUserExist = await User.findById(userId).select("+password");
@@ -152,7 +152,7 @@ const changePassword = async (
 
   const matchedPassword = await comparePassword(
     isUserExist.password,
-    oldPassword
+    currentPassword
   );
   if (!matchedPassword) {
     throw new AppError(
@@ -214,7 +214,7 @@ const verifyChangePSOtp = async (req: Request) => {
   await isUserExist.save();
   await redisClient.del(redisOTPKey);
   await redisClient.del(redisPwcdKey);
-  const token = createUserTokens(isUserExist);
+  
 
   eventBus.emit("log", {
     req,
@@ -224,7 +224,7 @@ const verifyChangePSOtp = async (req: Request) => {
       status: IAuditStatus.SUCCESS,
     },
   });
-  return token;
+  return ;
 };
 
 const forgetPassword = async (phone: string) => {

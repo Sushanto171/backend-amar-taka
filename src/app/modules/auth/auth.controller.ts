@@ -43,10 +43,10 @@ const logout = catchAsync(async (req, res) => {
 
 const changePassword = catchAsync(async (req, res) => {
   const userId = req.user.userId;
-  const { oldPassword, newPassword } = req.body;
+  const { currentPassword, newPassword } = req.body;
   const changePasswordOTP = await authService.changePassword(
     userId,
-    oldPassword,
+    currentPassword,
     newPassword
   );
   // res.redirect("http://localhost:5000/change-password/verify-otp")
@@ -59,8 +59,11 @@ const changePassword = catchAsync(async (req, res) => {
 });
 
 const verifyChangePasswordOtp = catchAsync(async (req, res) => {
-  const userToken = await authService.verifyChangePSOtp(req);
-  setAuthCookie(res, userToken);
+  await authService.verifyChangePSOtp(req);
+  res.setHeader("Cache-Control", "no-store");
+  res.removeHeader("ETag");
+  res.clearCookie("accessToken", cookieOptions);
+  res.clearCookie("refreshToken", cookieOptions);
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,
@@ -82,6 +85,10 @@ const forgetPassword = catchAsync(async (req, res) => {
 
 const resetPassword = catchAsync(async (req, res) => {
   await authService.resetPassword(req);
+  res.setHeader("Cache-Control", "no-store");
+  res.removeHeader("ETag");
+  res.clearCookie("accessToken", cookieOptions);
+  res.clearCookie("refreshToken", cookieOptions);
   sendResponse(res, {
     success: true,
     statusCode: httpsStatusCodes.OK,

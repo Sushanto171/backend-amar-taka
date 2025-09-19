@@ -76,6 +76,12 @@ export const updateUserZodSchema = z.object({
   email: z.string().email({ message: "Invalid email format" }).optional(),
 
   picture: z.string().url({ message: "Invalid picture URL" }).optional(),
+
+  phone: z
+    .string({
+      error: "Phone number is required",
+    })
+    .regex(bdPhoneRegex, { message: "Invalid Bangladesh phone number format" }),
 });
 
 export const actionUserZodSchema = z.object({
