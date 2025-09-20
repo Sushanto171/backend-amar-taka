@@ -57,6 +57,11 @@ exports.updateUserZodSchema = zod_1.z.object({
         .optional(),
     email: zod_1.z.string().email({ message: "Invalid email format" }).optional(),
     picture: zod_1.z.string().url({ message: "Invalid picture URL" }).optional(),
+    phone: zod_1.z
+        .string({
+        error: "Phone number is required",
+    })
+        .regex(bdPhoneRegex, { message: "Invalid Bangladesh phone number format" }),
 });
 exports.actionUserZodSchema = zod_1.z.object({
     isDeleted: zod_1.z.boolean().optional(),

@@ -117,13 +117,13 @@ const getNewAccessToken = (refreshToken) => __awaiter(void 0, void 0, void 0, fu
     const accessToken = (0, jwt_1.generateToken)(jwtPayload, env_config_1.envVars.JWT.JWT_ACCESS_SECRET, env_config_1.envVars.JWT.JWT_ACCESS_EXPIRATION);
     return { accessToken, refreshToken };
 });
-const changePassword = (userId, oldPassword, newPassword) => __awaiter(void 0, void 0, void 0, function* () {
+const changePassword = (userId, currentPassword, newPassword) => __awaiter(void 0, void 0, void 0, function* () {
     const isUserExist = yield user_model_1.User.findById(userId).select("+password");
     if (!isUserExist) {
         throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.NOT_FOUND, "User does not found");
     }
     (0, checkUserWithWallet_1.checkUserWithWallet)(isUserExist); //check user profile
-    const matchedPassword = yield (0, bcryptjs_1.comparePassword)(isUserExist.password, oldPassword);
+    const matchedPassword = yield (0, bcryptjs_1.comparePassword)(isUserExist.password, currentPassword);
     if (!matchedPassword) {
         throw new AppError_1.AppError(https_status_codes_1.httpsStatusCodes.BAD_REQUEST, "Password does not matched.");
     }
@@ -173,7 +173,6 @@ const verifyChangePSOtp = (req) => __awaiter(void 0, void 0, void 0, function* (
     yield isUserExist.save();
     yield redis_config_1.redisClient.del(redisOTPKey);
     yield redis_config_1.redisClient.del(redisPwcdKey);
-    const token = (0, jwt_1.createUserTokens)(isUserExist);
     eventBus_1.eventBus.emit("log", {
         req,
         payload: {
@@ -182,7 +181,7 @@ const verifyChangePSOtp = (req) => __awaiter(void 0, void 0, void 0, function* (
             status: auditLogs_interface_1.IAuditStatus.SUCCESS,
         },
     });
-    return token;
+    return;
 });
 const forgetPassword = (phone) => __awaiter(void 0, void 0, void 0, function* () {
     const isUserExist = yield user_model_1.User.findOne({ phone });

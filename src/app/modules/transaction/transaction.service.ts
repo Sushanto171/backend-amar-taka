@@ -126,7 +126,7 @@ const getAllTransactions = async (query: Record<string, string>) => {
   const queryBuilder = new QueryBuilder(Transaction.find(), query);
   const transaction = queryBuilder
     .filter()
-    .search(["sender", "receiver"])
+    .search(["sender", "receiver", "reference", "amount", "type", "status"])
     .fields()
     .sort()
     .paginate();
@@ -134,7 +134,6 @@ const getAllTransactions = async (query: Record<string, string>) => {
     transaction.build(),
     transaction.getMeta(true),
   ]);
-
   return { trans, meta };
 };
 
@@ -154,7 +153,7 @@ const getTransactionByUserId = async (
   );
   const transaction = queryBuilder
     .filter()
-    .search(["sender", "receiver", "reference"])
+    .search(["sender", "receiver", "reference", "type", "status", "amount"])
     .fields()
     .sort()
     .paginate();

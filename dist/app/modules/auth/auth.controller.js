@@ -51,8 +51,8 @@ const logout = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void
 }));
 const changePassword = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.user.userId;
-    const { oldPassword, newPassword } = req.body;
-    const changePasswordOTP = yield auth_service_1.authService.changePassword(userId, oldPassword, newPassword);
+    const { currentPassword, newPassword } = req.body;
+    const changePasswordOTP = yield auth_service_1.authService.changePassword(userId, currentPassword, newPassword);
     // res.redirect("http://localhost:5000/change-password/verify-otp")
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
@@ -62,8 +62,11 @@ const changePassword = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void
     });
 }));
 const verifyChangePasswordOtp = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userToken = yield auth_service_1.authService.verifyChangePSOtp(req);
-    (0, setToken_1.setAuthCookie)(res, userToken);
+    yield auth_service_1.authService.verifyChangePSOtp(req);
+    res.setHeader("Cache-Control", "no-store");
+    res.removeHeader("ETag");
+    res.clearCookie("accessToken", cookieOptions_1.cookieOptions);
+    res.clearCookie("refreshToken", cookieOptions_1.cookieOptions);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: https_status_codes_1.httpsStatusCodes.OK,
@@ -83,6 +86,10 @@ const forgetPassword = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void
 }));
 const resetPassword = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield auth_service_1.authService.resetPassword(req);
+    res.setHeader("Cache-Control", "no-store");
+    res.removeHeader("ETag");
+    res.clearCookie("accessToken", cookieOptions_1.cookieOptions);
+    res.clearCookie("refreshToken", cookieOptions_1.cookieOptions);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: https_status_codes_1.httpsStatusCodes.OK,

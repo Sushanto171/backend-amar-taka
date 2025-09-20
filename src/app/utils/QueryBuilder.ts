@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Query } from "mongoose";
 import { excludeFields } from "../constant";
 
@@ -20,19 +21,27 @@ export class QueryBuilder<T> {
     const searchTermArr = searchTerm.split(",");
 
     if (searchTerm) {
-      const regexCondition: {
-        $or: Record<string, { $regex: string; $options: string }>[];
-      }[] = [];
-      searchTermArr.map((value) => {
-        const term = {
-          $or: searchableFields.map((field) => ({
-            [field]: { $regex: value, $options: "i" },
-          })),
-        };
-        regexCondition.push(term);
+      const orConditions: Record<string, any>[] = [];
+      searchTermArr.forEach((value) => {
+        searchableFields.forEach((field) => {
+          if (field === "amount" || field === "fee") {
+            if (!isNaN(Number(value))) {
+              orConditions.push({ [field]: Number(value) });
+            }
+          } else {
+            orConditions.push({
+              [field]: {
+                $regex: value,
+                $options: "i",
+              },
+            });
+          }
+        });
       });
 
-      this.modelQuery = this.modelQuery.find({ $or: regexCondition });
+      if (orConditions.length > 0) {
+        this.modelQuery = this.modelQuery.find({ $or: orConditions });
+      }
     }
     return this;
   }
@@ -59,10 +68,9 @@ export class QueryBuilder<T> {
     return this.modelQuery;
   }
 
-  async getMeta(condition = false) {
+  async getMeta(condition = true) {
     const queryConditions = this.modelQuery.getFilter();
     const hasConditions = Object.values(queryConditions).length > 0;
-
     const totalDocuments = await this.modelQuery.model.countDocuments(
       condition || hasConditions ? queryConditions : {}
     );
